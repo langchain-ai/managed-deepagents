@@ -14,6 +14,50 @@ On each non-dev release, notes are generated from git commits since the previous
 
 ## Unreleased
 
+## 0.6.0 - 2026-08-24
+
+### Added
+
+- Generate Slack icons from app names (`cli`) (#381)
+- Add Slack app background color [CLOSES AB-000] (`fleet`) (#379)
+- Log Trigger channel traffic (`channels`) (#369)
+- Support custom Slack channel icons (`mda`) (#372)
+- Scaffold Slack from mda init --channel (`cli`) (#371)
+- Warn when channel/ is used instead of channels/ (`cli`) (#370)
+- Standardize guidance output sequences (`cli`) (#373)
+- Guide slack responses with mrkdwn (`sdk`) (#365)
+- Define analytics event contract (`cli`) (#359)
+- Add Slack channel init command (`cli`) (#364)
+- Add Harbor evaluation workflow (`evals`) (#351)
+- Identify HTTP requests with User-Agent (`cli`) (#357)
+- Prototype Trigger-backed Slack channels [closes LSD-1857] (`sdk`) (#348)
+- Bake setup.sh into a recipe snapshot at deploy (`sandbox`) (#339)
+- Introduce interactive init mode (`cli`) (#349)
+
+### Changed
+
+- Bump uuid in the minor-and-patch group (`deps`) (#386)
+- Bump oxc from 0.144.0 to 0.146.0 in the major group (`deps`) (#387)
+- Bump oxfmt (`deps-dev`) (#388)
+- Bump the minor-and-patch group (`deps-dev`) (#389)
+- Update npm dependencies (`security`) (#368)
+- Pin LangGraph API image to stable 0.12.6 (#350)
+- Remove LANGSMITH_GATEWAY_API_KEY preflight requirement (#347)
+
+### Fixed
+
+- Fail deploy when sandboxes are disabled for the org (`cli`) (#391)
+- Make slack app metadata optional (`channels`) (#390)
+- Send interrupt envelopes on run.interrupted (`channels`) (#383)
+- Emit run.interrupted and accept interrupt_resume (`channels`) (#380)
+- Skip recipe snapshots still used by sandboxes (`cli`) (#377)
+- Normalize authored assistant ids (`sdk`) (#376)
+- Pause deploy for Slack authorization (`fleet`) (#366)
+- Avoid redundant Python dev reloads (`cli`) (#358)
+- Show install-specific docs link (`cli`) (#362)
+- Require Gateway provider keys (`sdk`) (#352)
+- Improve missing Slack channel error (`cli`) (#346)
+- Sync Python lockfile metadata (`release`) (#345)
 ## 0.5.3 - 2026-08-18
 
 ### Added
@@ -147,13 +191,10 @@ On each non-dev release, notes are generated from git commits since the previous
   streams until Ctrl-C; piped or redirected it prints the most recent lines
   (1000 by default, `--lines`) and exits. Also supports `--level`,
   `-f`/`--no-follow`, and `--tenant-id` (`cli`)
-- `mda init --interactive` builds the project with an agent instead of a
-  template: it asks what you want to build, interviews you about the parts it
-  cannot infer, and writes the project into the destination as it goes, so you
-  can open files while the conversation is still running. It signs you in to
-  LangSmith through the OAuth device flow and ends by offering to deploy or run
-  what it built. `mda init` on its own still expands the starter template
-  (`cli`)
+- In a terminal, `mda init` prompts for a missing project name. Adding
+  `--interactive` / `-i` also offers a coding-agent handoff after scaffolding.
+  `mda init <name>` remains non-interactive for scripts and coding agents, and
+  default completion prints language-specific quickstart and deploy steps (`cli`)
 - `mda init` takes the project's shape as flags, so a coding agent or a CI
   script can scaffold a specific project without answering prompts:
   `--instructions`/`--instructions-file` (`-` reads stdin) for
@@ -447,21 +488,21 @@ there is no migration window. `specification/primitives/` has the design;
 
 **Authoring** (`npm`, `pypi`)
 
-| Was                                             | Now                                               |
-| ----------------------------------------------- | ------------------------------------------------- |
-| `defineSlackChannel` / `define_slack_channel`   | `connectors.slack`                                |
-| `defineGitHubChannel` / `define_github_channel` | removed (use custom tools + `credentials.github`) |
-| `channels.slack` / `channels.github`            | `connectors.slack` / removed                      |
-| `defineMcpServers` / `define_mcp_servers`       | `connectors.mcp`                                  |
-| `github.connector`                              | removed                                           |
-| `langsmith.connector` / `connectors.langsmith`  | removed (see above)                               |
-| `sandboxes.langsmith(…)`                        | `defineSandbox(…)` / `define_sandbox(…)`          |
-| `providers.*`                                   | `auth.*`                                          |
-| `github.credentials(…)`                         | `credentials.github(…)`                           |
-| `github.connect()` / `slack.connect()`          | `connect.github()` / `connect.slack()`            |
-| `channels/` directory + `export const channel`  | `connectors/` + `export const connector`          |
-| `POST /channels/{name}/events`                  | `POST /connectors/{name}/events`                  |
-| GitHub channel `handlers`                       | removed (custom tools + `credentials.github`)     |
+| Was                                                     | Now                                              |
+| ------------------------------------------------------- | ------------------------------------------------ |
+| `defineSlackChannel` / `define_slack_channel`           | `connectors.slack`                               |
+| `defineGitHubChannel` / `define_github_channel`         | removed (use custom tools + `credentials.github`) |
+| `channels.slack` / `channels.github`                    | `connectors.slack` / removed                      |
+| `defineMcpServers` / `define_mcp_servers`               | `connectors.mcp`                                 |
+| `github.connector`                                      | removed                                          |
+| `langsmith.connector` / `connectors.langsmith`          | removed (see above)                              |
+| `sandboxes.langsmith(…)`                               | `defineSandbox(…)` / `define_sandbox(…)`         |
+| `providers.*`                                           | `auth.*`                                         |
+| `github.credentials(…)`                                 | `credentials.github(…)`                          |
+| `github.connect()` / `slack.connect()`                  | `connect.github()` / `connect.slack()`           |
+| `channels/` directory + `export const channel`          | `connectors/` + `export const connector`         |
+| `POST /channels/{name}/events`                          | `POST /connectors/{name}/events`                 |
+| GitHub channel `handlers`                               | removed (custom tools + `credentials.github`)    |
 
 - **Channels → connectors (BREAKING):** the public `channels` namespace and
   `channels/` project directory are gone. Slack Events and messaging declare
