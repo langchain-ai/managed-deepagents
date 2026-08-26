@@ -14,6 +14,21 @@ On each non-dev release, notes are generated from git commits since the previous
 
 ## Unreleased
 
+## 0.6.1 - 2026-08-26
+
+### Added
+
+- Report long-running command completion on Ctrl-C (`cli`) (#403)
+- Add PostHog telemetry and completion reporting (`cli`) (#378)
+- Add anonymous installation identity and analytics opt-out gate (`cli`) (#395)
+
+### Fixed
+
+- Reconnect 0.5.x thread sandboxes after 0.6 upgrade (`sandbox`) (#404)
+- Use LC palette and dots for Slack icons (`cli`) (#396)
+- Accept legacy LangSmith keys during init (`sdk`) (#399)
+- Start mda deploy with the same wordmark and version as init (`cli`) (#385)
+- Use public channel terminology (`channels`) (#393)
 ## 0.6.0 - 2026-08-24
 
 ### Added
