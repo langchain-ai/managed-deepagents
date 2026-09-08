@@ -14,6 +14,210 @@ On each non-dev release, notes are generated from git commits since the previous
 
 ## Unreleased
 
+## 0.7.0 - 2026-09-08
+
+### Added
+
+**User-owned connections in `mda dev`** (`npm`, `pypi`)
+User-owned connections (`connections.get(slug, { type: "user" })`) resolve
+through Agent Auth in every environment, including `mda dev`. The runtime maps
+the verified ingress identity to an Agent Auth principal
+(`POST /v1/agent-auth/principals`) before grant lookup or OAuth session create.
+Channel `identity_context` principals skip that resolve. OAuth sessions use
+canonical `owner_type` / `owner_id`. `LANGSMITH_HOST_PROJECT_ID` is optional for
+user owners; agent-owned secrets still use `MDA_DEV_<SLUG>` under local
+development. For Studio, `mda dev` requires a personal LangSmith API key (or
+prompts for browser sign-in), resolves its verified LangSmith user through
+`POST /v1/agent-auth/principals`, and stages that principal for the local run.
+Other service principals cannot own user OAuth grants.
+**Agent-owned OAuth authorization** (`cli`)
+`mda connections create <slug> --authorize` now creates the workspace
+connection, starts an OAuth authorization session for the deployed agent, and
+prints the provider authorization URL. It supports catalog or manual OAuth and
+explicit or project-inferred MCP OAuth discovery. OAuth connections without
+`--authorize` keep the per-user runtime authorization flow.
+**OAuth service catalog** (`cli`)
+`mda connections create --oauth <service>` now resolves the service's
+authorization endpoint, token endpoint, token endpoint auth method, default
+scopes, and authorization params from a table compiled into the CLI, so an author
+supplies only their own client credentials. Covers `atlassian`, `bitbucket`,
+`box`, `click-up`, `discord`, `dropbox`, `facebook`, `figma`, `github`,
+`gitlab`, `google`, `hubspot`, `huggingface`, `linear`, `linkedin`,
+`notion-api`, `patreon`, `reddit`, `salesforce`, `slack`, `spotify`, `twitch`,
+and `x`. An unrecognized service is refused and names the ones that
+are known. The Notion catalog name includes `-api` to distinguish its BYOT API
+integration from an MCP server discovered through DCR. Tenant-specific issuers
+(Auth0, Okta, Entra tenants, GitLab self-managed) are omitted; authors still
+override any entry with `--authorize-url` / `--token-url`.
+`mda connections catalog [--json]` lists the table. It reads the compiled-in data,
+so it takes no workspace id, no API key, and makes no network call.
+`--auth-method`, `--allowed-scope`, and `--authorization-param` make the
+remaining provider registration fields author-controlled. Client credentials are
+named with `--secret-from-env` or `--secret-from-file`.
+A successful OAuth create prints the redirect URI to register with the provider
+before prompting for the client secret, and again after the connection is
+stored. The error for a missing `--client-id` names the provider's app
+registration page and leaves the URI in the block above. The URI follows the
+configured host rather than being fixed to production.
+A successful OAuth create also reports the scopes it registered, since those alone
+decide whether the provider's consent screen accepts the authorization request. A
+manual registration (`--authorize-url` / `--token-url`) that named no scopes is
+called out: it produces an authorization request with no `scope` parameter, which
+most providers refuse. A catalog service that defines no scopes, such as Notion,
+stays quiet.
+`mda connections create <slug> --mcp <url>` registers an OAuth connection
+via MCP discovery. A scheme-less value such as `mcp.acme.com/mcp`
+is stored as `https://mcp.acme.com/mcp`. If the server cannot register a
+client automatically (CIMD or DCR), the CLI says so and points at `--oauth`
+or a manual client id.
+Agent Auth reports a failed discovery the same way whether the host does not
+exist or simply registers no client, so a mistyped URL used to read as a
+provider that cannot register a client. The CLI now asks the server itself and
+distinguishes a host that never answered, a host that answered 404, and a
+reachable server that supports neither CIMD nor DCR.
+`mda connections create <slug>` infers MCP OAuth discovery when that slug is
+used by exactly one user-owned remote MCP server in the project. The CLI
+passes the server URL through so Agent Auth can discover and register a client
+instead of requiring `--oauth` or a client id. Agent-owned MCP connections and
+ambiguous slugs are not inferred.
+Deploy applies the same inference to missing user-owned MCP connections. It
+leaves existing connections unchanged, automatically creates each unique
+missing MCP connection through OAuth discovery, and fails before
+deployment with guidance when discovery or registration is unavailable.
+`mda connections --help` (and the `connection` alias) lists grouped examples
+for catalog OAuth, extra scopes, a manual provider, MCP from a server URL,
+MCP from a project connector slug, opaque secrets, list, get, and delete,
+each labeled with a `#` comment.
+`mda connections create --help` presents opaque secrets, general OAuth, and
+MCP OAuth as separate modes, with grouped flags and examples for each.
+`Examples` and `Docs` use the same underlined heading style as clap's
+`Commands` and `Options`.
+
+- Authorize agent OAuth during connection create (`mda`) (#493)
+- Resolve user OAuth grants in mda dev (`connections`) (#500)
+- Forward --tunnel to the LangGraph dev server (`dev`) (#470)
+- Expand the compiled OAuth service catalog and improve `--help` docs (`connections`) (#490)
+- Add --mcp for explicit DCR create (`connections`) (#488)
+- Infer MCP DCR from user-owned connector slugs (`connections`) (#485)
+- Add `mda prepare` for platform-run GitHub builds (`cli`) (#489)
+- Reject user credentials without an OAuth provider (`deploy`) (#447)
+- Resolve local agent secrets from env (`credentials`) (#445)
+- Prompt for LangSmith login during `mda dev` (`cli`) (#397)
+- Show the wordmark intro in dev and delete (`cli`) (#443)
+- Expose caller on serverInfo.user instead of identity (`runtime`) (#400)
+- Add the agent-auth credential client (`cli`) (#419)
+- Schedules go through channel server [closes TI-20] (`mda`) (#413)
+- Report a bounded error category on failed commands (`cli`) (#406)
+
+### Changed
+
+**Authoring — `connectors.mcp` → `defineMcp` / `define_mcp`** (`npm`, `pypi`)
+MCP is the only connector, so it is a resource factory like `defineSandbox`
+rather than a `connectors.*` provider. That keeps `connections.get(...)` as
+the sole `connect*` namespace for secrets and credentials.
+**Authoring — `mcpServers` / `mcp_servers` → `servers`** (`npm`, `pypi`)
+The MCP server map is now `servers`. `mcpServers` (TypeScript) and
+`mcp_servers` (Python) remain as deprecated aliases and will be removed in
+`0.8.0`. The stored definition always uses `servers`. The
+LangChain adapter constructor still receives `mcpServers`.
+**Channel failures name missing connections** (`npm`, `pypi`)
+When a channel run cannot start because a declared workspace connection is not
+configured, the runtime sends a safe, actionable failure message naming the
+connection and the `mda connections create` command. Other runtime failures
+keep the generic channel error rather than exposing arbitrary exception text.
+**Channel threads are owned by their source conversation** (`npm`, `pypi`)
+A managed channel thread is now owned by `mda:source-thread:{provider}:{key}`
+rather than by the principal that delivered its first message. A Slack thread is
+addressed by its source conversation and its deliveries carry whichever
+principal `identity_context` resolved to — none on an interrupt resume, a
+different one when another participant replies — so per-principal ownership
+denied every delivery after the first.
+Channel conversations that were already running do not carry over. Their threads
+were created with the delivering principal as owner, and nothing in a later
+delivery can present that principal again, so the run is denied. There is no
+automatic migration: the thread id is a hash of the source thread key, so
+existing threads cannot be mapped back to the conversations that would re-own
+them. Start a new conversation in the channel after deploying this version;
+in-flight ones stop responding.
+**Runtime caller — `runtime.identity` → `serverInfo`** (`npm`, `pypi`)
+Tools and middleware now read the caller from LangGraph's standard `serverInfo`
+path, reshaped to match Agent Auth so the surface does not move again when
+`resolve-principal` starts supplying it directly. `runtime.identity` is gone
+from the tool/middleware runtime; there is no compatibility shim.
+On PyPI the identity fields are an attribute view (`principal.id`,
+`subject.authority`, `link.status`) for parity with TypeScript, while
+`principal.claims` stays a mapping so namespaced IdP claims remain reachable as
+`claims["https://acme.com/tenant"]` — the two named claims carry the same
+normalization guarantee as TypeScript's `PrincipalClaims`, documented rather
+than declared because the bag is open. The envelope's `link.from` is exposed as
+`link.from_` because `from` is a reserved word in Python.
+
+- TypeScript: `tools/mcp.ts` exports `const mcp = defineMcp({ servers: { … } })`
+- Python: `tools/mcp.py` defines `mcp = define_mcp(servers={…})`
+- `connectors.mcp(...)` remains as a deprecated alias and will be removed in
+  `0.8.0`. The old project `connectors/` directory and `connector` export remain
+  available with a warning during `0.7.x`.
+- `runtime.identity?.user.id` becomes `runtime.serverInfo?.principal?.id`
+  (`runtime.server_info.principal.id` on PyPI).
+- `identity.user.kind` becomes `principal.kind`, and gains a `"channel"`
+  variant alongside `"person"` and `"service"`.
+- `identity.user.email` and `identity.groups` fold into `principal.claims` as
+  `claims.email` and `claims.groups`. Authorization checks that read groups must
+  move. Both are normalized whether or not the deployment mapped the claim, so
+  `claims.groups` is always a string array even when the IdP sent a delimited
+  string, and a value that cannot be normalized is dropped rather than passed
+  through under a name the type has promised.
+- `identity.source` becomes `serverInfo.source` (`provider` plus an optional
+  `threadId` / `thread_id`), resolved from the trusted ingress stamps. Reading
+  `serverInfo.user.mda_source_provider` is no longer necessary.
+- `serverInfo.assistantId` / `graphId` and `subject.agent_id` are absent when
+  the platform supplied no id, rather than reported as an empty string.
+- New exported types: `Principal`, `PrincipalClaims`, `Subject`, `Link`,
+  `IdentitySource`, `PrincipalEnvelope`, and `ManagedServerInfo`.
+  `principalEnvelopeFromServerInfo` reassembles the wire envelope for Agent
+  Auth mint.
+- `RuntimeIdentity` is unchanged and still describes what HTTP connector route
+  handlers receive from `resolveRequestIdentity`.
+- Replace connectors.mcp with defineMcp (`authoring`) (#483)
+- Update README with correct LangSmith Gateway link (#486)
+- Drop mda connections check (`connections`) (#499)
+- Bump qs from 6.15.3 to 6.16.0 in /packages/npm (`deps`) (#479)
+- Bump fast-uri from 3.1.5 to 3.1.7 in /packages/npm (`deps`) (#480)
+- Standardize static command output (`cli`) (#476)
+- Pluralize resource commands (`cli`) (#471)
+- Remove --client-secret-env and extract secret reading into a module (#465)
+- Add workspace-scoped connections runtime for Python (#454)
+- Add OAuth connection create, check, and deploy gates (#453)
+- Add workspace-scoped connections runtime (TypeScript) (#451)
+- Add workspace-scoped mda connection CLI (opaque) (#450)
+- Bump the minor-and-patch group with 2 updates (`deps`) (#437)
+- Bump oxc from 0.146.0 to 0.147.0 in the major group (`deps`) (#438)
+- Bump the minor-and-patch group (`deps`) (#439)
+
+### Fixed
+
+- Make automatic Slack replies explicit (`channels`) (#508)
+- Explain missing workspace connections (`channels`) (#494)
+- Add x oauth catalog entry and show scopes (`connections`) (#484)
+- Mda connections list displays workspace scoped connections instead of deployment scoped (`connections`) (#491)
+- Let Studio read and search channel-owned threads (`runtime`) (#482)
+- Quote Agent Auth problem+json hints in store errors (`connections`) (#481)
+- Scope channel threads and agent secrets by conversation and deployment (`connections`) (#477)
+- Stamp Trigger identity_context principal on ingress runs (`channels`) (#474)
+- Resolve user grants via connection-for-owner (`connections`) (#472)
+- Drop --app, rename secret flags, print the OAuth redirect URI (`connections`) (#478)
+- Use LANGCHAIN_ENDPOINT for Agent Auth on cloud (`connections`) (#469)
+- Warn instead of failing when schedule reconcile fails (`deploy`) (#446)
+- Speak nested Agent Auth credential shape (`connections`) (#466)
+- Use event identity for actions (`channels`) (#442)
+- Keep deploy URLs on one line (`deploy`) (#464)
+- Stop unscoping Studio principals in managed auth (`runtime`) (#427)
+- Default-deny unhandled LangGraph auth resources (`runtime`) (#426)
+- Clear crons before deleting the deployment (`delete`) (#430)
+- Speak the project's language in CLI guidance (`cli`) (#429)
+- Cap connector Events bodies at 1 MiB (`runtime`) (#416)
+- Require matching CORS scheme for credentialed origins (`runtime`) (#415)
+- Delete stale crons before recreating schedules (`deploy`) (#410)
 ## 0.6.1 - 2026-08-26
 
 ### Added
