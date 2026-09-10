@@ -14,6 +14,32 @@ On each non-dev release, notes are generated from git commits since the previous
 
 ## Unreleased
 
+## 0.7.1 - 2026-09-10
+
+### Changed
+
+- Bump @vitest/mocker (`deps`) (#519)
+
+### Fixed
+
+**Studio callers resolve to an authenticated principal** (`npm`, `pypi`)
+Every Studio request resolved to no actor at all. The Agent Server injects
+`langgraph_api.auth.studio_user.StudioUser`, which reads like a mapping but is
+not a registered `collections.abc.Mapping`, so an `isinstance` gate in the
+runtime's Studio detection dropped the principal. `build_runtime_identity`
+returned `None`, and everything downstream — `server_info.principal`,
+`server_info.user`, `source.provider: "studio"`, actor-scoped memory and store
+namespacing — behaved as though the run were anonymous.
+Detection now prefers `langgraph_sdk.auth.is_studio_user` and otherwise reads
+the signal structurally, matching what the auth handler already did.
+Both runtimes use the verified LangSmith `ls_user_id` for Studio user identity,
+thread ownership, and user-owned connections. Deployed Studio uses the
+`langsmith` identity provider; `mda dev` uses `langsmith-dev` so development
+credentials stay separate.
+
+- Guide Markdown link formatting for Slack replies (`channels`) (#518)
+- Detect the Studio principal the server injects (`runtime`) (#510)
+- Wait for npm registry propagation (`release`) (#511)
 ## 0.7.0 - 2026-09-08
 
 ### Added
@@ -218,6 +244,7 @@ than declared because the bag is open. The envelope's `link.from` is exposed as
 - Cap connector Events bodies at 1 MiB (`runtime`) (#416)
 - Require matching CORS scheme for credentialed origins (`runtime`) (#415)
 - Delete stale crons before recreating schedules (`deploy`) (#410)
+
 ## 0.6.1 - 2026-08-26
 
 ### Added
