@@ -14,6 +14,31 @@ On each non-dev release, notes are generated from git commits since the previous
 
 ## Unreleased
 
+## 0.7.2 - 2026-09-10
+
+### Changed
+
+- Mount the project's skills in eval trials (#527)
+- Bump the minor-and-patch group across 1 directory with 9 updates (`deps`) (#513)
+- Bump the minor-and-patch group across 1 directory with 5 updates (`deps`) (#506)
+- Bump oxc from 0.147.0 to 0.148.0 in the major group (`deps`) (#504)
+- Bump the minor-and-patch group with 2 updates (`deps`) (#503)
+
+### Fixed
+
+**Eval trials mount the project's skills** (`cli`, `npm`, `pypi`)
+Harbor eval trials ran with no skills library, so an eval whose expected
+behaviour is defined by a skill failed on the harness rather than on agent
+quality. Skills were already packaged into the eval artifact, but the generated
+eval entry never told the runtime to mount them.
+The eval entry now passes `has_skills` the way the dev and deploy entries do.
+A trial has no Context Hub: the Harbor adapter copies the compiled project into
+the trial workspace, so `/skills/` resolves to the project's own `skills/` tree.
+Memory stays off and the authored sandbox is still not instantiated in eval mode.
+
+- Require local provider keys for direct models [closes MDAC-29] (`mda`) (#529)
+- Use separate tracing projects for local runs (#530)
+- Merge OpenWiki updates after CI (#524)
 ## 0.7.1 - 2026-09-10
 
 ### Changed
