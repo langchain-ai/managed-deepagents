@@ -14,6 +14,26 @@ On each non-dev release, notes are generated from git commits since the previous
 
 ## Unreleased
 
+## 0.7.3 - 2026-09-16
+
+### Added
+
+- Add lmt for mda python + ts [closes TI-48] (`mda`) (#551)
+- Name deploy target and link it earlier (`cli`) (#544)
+- Open the prefilled activation page (`cli`) (#463)
+
+### Changed
+
+- Surface deployment metadata earlier (#544)
+- Revert "feat(mda): add lmt for mda python + ts [closes TI-48] (#551)" (#555)
+- Modernize TypeScript dependencies and fix sharp (`deps`) (#541)
+
+### Fixed
+
+- Remove MDA's default recursion limit (`runtime`) (#564)
+- Explain init language selection [closes MDAC-47] (`cli`) (#554)
+- Fix GitHub preparation auth and Context Hub routing (`mda`) (#523)
+- Limit OpenWiki merge checks to wiki updates (#532)
 ## 0.7.2 - 2026-09-10
 
 ### Changed
@@ -39,6 +59,7 @@ Memory stays off and the authored sandbox is still not instantiated in eval mode
 - Require local provider keys for direct models [closes MDAC-29] (`mda`) (#529)
 - Use separate tracing projects for local runs (#530)
 - Merge OpenWiki updates after CI (#524)
+
 ## 0.7.1 - 2026-09-10
 
 ### Changed
