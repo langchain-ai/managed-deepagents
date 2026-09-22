@@ -14,6 +14,18 @@ On each non-dev release, notes are generated from git commits since the previous
 
 ## Unreleased
 
+## 0.7.4 - 2026-09-22
+
+### Changed
+
+- Bump the minor-and-patch group (`deps-dev`) (#588)
+- Bump the minor-and-patch group (`deps`) (#587)
+- Bump oxc from 0.149.0 to 0.150.0 in the major group (`deps`) (#586)
+- Bump the minor-and-patch group with 2 updates (`deps`) (#585)
+
+### Fixed
+
+- Return sign-in guidance for missing credential-gate callers (`mda`) (#565)
 ## 0.7.3 - 2026-09-16
 
 ### Added
