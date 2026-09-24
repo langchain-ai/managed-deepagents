@@ -14,6 +14,126 @@ On each non-dev release, notes are generated from git commits since the previous
 
 ## Unreleased
 
+## 0.8.0 - 2026-09-24
+
+### Added
+
+- **Agent and user memory** (`npm`, `pypi`, `cli`). Declare shared agent memory
+  and private user memory as separate Context Hub layers. Each layer supports a
+  sync or async `allow(context)` policy. See the migration notes below.
+- **Sandbox file API** (`npm`, `pypi`). Authored tools and middleware can use
+  `runtime.backend` to list, read, write, edit, search, upload, and download files
+  in the managed sandbox. Binary transfers use `uploadFiles` / `downloadFiles`
+  in TypeScript and `upload_files` / `download_files` in Python. The backend is
+  absent when no sandbox is declared; it does not expose Context Hub memory or
+  skills.
+- **Python deployment version** (`cli`, `pypi`). Set
+  `[tool.mda].python-version` in `pyproject.toml`, or override it with
+  `MDA_PYTHON_VERSION`, to select Python 3.11–3.14 for the deployment image.
+  Without an explicit setting, MDA selects the newest supported version allowed
+  by `requires-python`. This setting does not change the local or sandbox
+  interpreter.
+- **HTTP channels** (`npm`, `pypi`, `cli`). Define a webhook adapter with
+  `channels.http`. Verify requests, decode JSON, form data, text, or bytes, and
+  optionally send replies through the adapter. Verification and parsing each
+  receive a separately readable request body. Deploy output lists the webhook
+  URLs. Failed runs can send a default error reply or use an optional error
+  callback.
+- **Agent-owned prompt responses** (`npm`, `pypi`). Accept
+  `user_prompt_response` channel events for prompts posted by the application.
+  Match a response to an interrupt with `INTERRUPT_CORRELATION_KEY` and
+  `correlation_id`. Without a correlation ID, a response resumes the only
+  pending interrupt or starts a new turn if none is pending. Multiple pending
+  interrupts require an exact match.
+- **Slack file transfers** (`npm`, `pypi`). Save incoming files under
+  `/workspace/attachments/` and send completed workspace files with
+  `attach_file(path)`. This requires a managed sandbox. The runtime also checks
+  a limited number of thread-history pages for attachments and reuses files
+  already saved. History access requires the bot's history scope for the
+  conversation. Files are saved before an OAuth interrupt so they remain
+  available when the run resumes.
+- **OAuth client credentials** (`cli`). Create agent-owned connections with
+  `mda connections create --grant-type client_credentials`. MDA acquires the
+  token for the managed deployment without a browser authorization flow.
+- **Connections in sandbox proxy headers** (`npm`, `pypi`). Use Agent Auth
+  connection references directly, or wrap them with `bearer` or `basic`, in
+  proxy header configuration. MDA resolves credentials before each command and
+  updates changed values. Missing user grants use the existing authorization
+  interrupt flow. Runs in one thread share the proxy configuration; long-running
+  commands do not receive token refreshes during execution.
+- **Custom OAuth token headers and Stripe Link** (`cli`). Pass
+  `--token-request-header KEY=VALUE` to `mda connections create` for providers
+  that require headers on token and revocation requests. Add the Stripe Link
+  OAuth service to the connection catalog.
+- **LangSmith Managed Tools** (`npm`, `pypi`). Connect to managed MCP servers,
+  including Parallel Search, through `defineMcp` / `define_mcp`. MDA supplies
+  the trusted caller identity and LangSmith authentication. Managed OAuth tools
+  use the existing authorization interrupt flow. API-key tools require the
+  caller to connect the key in LangSmith Tools.
+- **Run completion telemetry** (`npm`, `pypi`). Report `run_completed` events
+  from both runtimes through the shared telemetry client and PostHog transport.
+  Set `MDA_TELEMETRY_DISABLED=1` or `DO_NOT_TRACK=1` to disable telemetry.
+
+### Changed
+
+**Channel API migration** (`npm`, `pypi`)
+**Memory migration** (`npm`, `pypi`, `cli`)
+Declare the enabled layers in the root `memory.ts` or `memory.py` module:
+```ts
+import { defineMemory, memoryLayer } from "managed-deepagents";
+export const memory = defineMemory({
+  agent: memoryLayer(),
+  user: memoryLayer(),
+});
+```
+Python uses `define_memory(agent=MemoryLayer(), user=MemoryLayer())`.
+
+- Direct API runs use the authored context schema. Managed channel runs use
+  MDA's channel schema, with delivery data and the verified reply target in
+  `runtime.context.channel`. Tools and memory policies that handle both sources
+  must support both context shapes. Supply run context through Agent Server's
+  `context` input.
+- Use `runtime.channel` for the channel name, provider, normalized event,
+  optional raw provider event, and optional `post` function. Trusted caller
+  information remains in `runtime.serverInfo` (`server_info` in Python).
+- Give each outgoing message an explicit `type`: use
+  `post({ type: "content", content: "..." })` or
+  `post({ type: "native", native: { ... } })` in TypeScript. Use the same message
+  fields in a Python dictionary. Native JSON requires an adapter that supports
+  it. Built-in Slack `post` sends text through Trigger; use `attach_file` for
+  file delivery.
+- Channel posts use the verified reply target. Remove uses of channel `update`,
+  capabilities, destination overrides, and final-post options. A post sends an
+  additional message; the final agent reply remains automatic.
+- Omitted layers are disabled. Agent memory is shared across the deployment at
+  `/memories/agent/`. User memory requires an identity declaration and a trusted
+  person, and mounts that person's Context Hub repo at `/memories/user/`.
+- The default user policy permits managed Slack one-to-one DMs. Other sources,
+  including direct API runs, require an explicit `allow(context)` policy.
+  A policy cannot grant user memory to a service principal or select another
+  person's memory. Studio users can inspect memory regardless of run policy.
+- Policies run once per run, including resumes, before memory mounts. A denied
+  layer contributes neither its mount nor its hot memory. Inspection does not
+  call the policy.
+- Hot memory loads once per run and is injected into each model call. It is not
+  saved in thread state. Deploy preserves existing memory, and a missing hot
+  file stays empty until the first write.
+- Legacy object-based `scope` declarations remain supported, including a user
+  `id` assertion. Do not combine them with named layers. String scopes are
+  rejected. The generated `MemoryConfig` uses version `2` and `scope` instead of
+  `slices`.
+- The graph factory selects context and memory access for each run. Native Node
+  Agent Server must pass the run's context to the factory. Direct users of the
+  managed compiler must build a fresh graph for each execution.
+- Release 0.8 (#623)
+- Add OAuth client credentials connections (#598)
+
+### Fixed
+
+- Resolve the local caller identity for LangSmith Managed Tools during
+  `mda dev` (`npm`, `pypi`).
+- Accept slashes in connection names (`npm`, `pypi`).
+- Keep OAuth token header values out of CLI error output (`cli`).
 ## 0.7.4 - 2026-09-22
 
 ### Changed
@@ -26,6 +146,7 @@ On each non-dev release, notes are generated from git commits since the previous
 ### Fixed
 
 - Return sign-in guidance for missing credential-gate callers (`mda`) (#565)
+
 ## 0.7.3 - 2026-09-16
 
 ### Added
