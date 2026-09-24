@@ -14,6 +14,12 @@ On each non-dev release, notes are generated from git commits since the previous
 
 ## Unreleased
 
+## 0.8.1 - 2026-09-24
+
+### Fixed
+
+- Allow requested client credentials scopes (`auth`) (#619)
+- Stop isolated dev server processes (`tests`) (#621)
 ## 0.8.0 - 2026-09-24
 
 ### Added
@@ -77,16 +83,6 @@ On each non-dev release, notes are generated from git commits since the previous
 ### Changed
 
 **Channel API migration** (`npm`, `pypi`)
-**Memory migration** (`npm`, `pypi`, `cli`)
-Declare the enabled layers in the root `memory.ts` or `memory.py` module:
-```ts
-import { defineMemory, memoryLayer } from "managed-deepagents";
-export const memory = defineMemory({
-  agent: memoryLayer(),
-  user: memoryLayer(),
-});
-```
-Python uses `define_memory(agent=MemoryLayer(), user=MemoryLayer())`.
 
 - Direct API runs use the authored context schema. Managed channel runs use
   MDA's channel schema, with delivery data and the verified reply target in
@@ -105,6 +101,21 @@ Python uses `define_memory(agent=MemoryLayer(), user=MemoryLayer())`.
 - Channel posts use the verified reply target. Remove uses of channel `update`,
   capabilities, destination overrides, and final-post options. A post sends an
   additional message; the final agent reply remains automatic.
+
+**Memory migration** (`npm`, `pypi`, `cli`)
+
+Declare the enabled layers in the root `memory.ts` or `memory.py` module:
+
+```ts
+import { defineMemory, memoryLayer } from "managed-deepagents";
+export const memory = defineMemory({
+  agent: memoryLayer(),
+  user: memoryLayer(),
+});
+```
+
+Python uses `define_memory(agent=MemoryLayer(), user=MemoryLayer())`.
+
 - Omitted layers are disabled. Agent memory is shared across the deployment at
   `/memories/agent/`. User memory requires an identity declaration and a trusted
   person, and mounts that person's Context Hub repo at `/memories/user/`.
