@@ -14,6 +14,12 @@ On each non-dev release, notes are generated from git commits since the previous
 
 ## Unreleased
 
+## 0.8.2 - 2026-09-25
+
+### Fixed
+
+- Support older Linux systems with static musl binaries (`cli`) (#627)
+- Clarify PAT requirement for user memory [MDAC-72] (`dev`) (#629)
 ## 0.8.1 - 2026-09-24
 
 ### Fixed
