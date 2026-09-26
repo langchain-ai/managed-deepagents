@@ -14,6 +14,20 @@ On each non-dev release, notes are generated from git commits since the previous
 
 ## Unreleased
 
+## 0.8.3 - 2026-09-26
+
+### Added
+
+- Add mda chat terminal client (`cli`) (#601)
+
+### Changed
+
+- Bump LangGraph.js release versions (`deps`) (#635)
+
+### Fixed
+
+- Finalize from packed npm metadata (`release`) (#636)
+- Catch unsupported agent settings during build (`mda`) (#628)
 ## 0.8.2 - 2026-09-25
 
 ### Fixed
