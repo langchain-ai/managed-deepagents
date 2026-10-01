@@ -14,6 +14,15 @@ On each non-dev release, notes are generated from git commits since the previous
 
 ## Unreleased
 
+## 0.8.5 - 2026-10-01
+
+### Changed
+
+- Bump fast-uri from 3.1.7 to 3.1.8 in /packages/npm (`deps`) (#667)
+- Bump the npm_and_yarn group across 3 directories with 2 updates (`deps`) (#669)
+- Bump ip-address from 10.7.0 to 10.7.2 in /packages/npm (`deps`) (#668)
+- Bump the uv group across 2 directories with 1 update (`deps`) (#659)
+- Bump pyjwt from 2.13.0 to 2.15.0 in /packages/pypi (`deps`) (#658)
 ## 0.8.4 - 2026-10-01
 
 ### Changed
