@@ -14,6 +14,17 @@ On each non-dev release, notes are generated from git commits since the previous
 
 ## Unreleased
 
+## 0.8.4 - 2026-10-01
+
+### Changed
+
+- Bump the minor-and-patch group in /packages/npm with 4 updates (`deps`) (#641)
+- Bump the minor-and-patch group in /packages/pypi with 5 updates (`deps`) (#642)
+- Bump the major group with 2 updates (`deps`) (#640)
+
+### Fixed
+
+- Lower pydantic floor so Fireworks deploys resolve (`pypi`) (#655)
 ## 0.8.3 - 2026-09-26
 
 ### Added
