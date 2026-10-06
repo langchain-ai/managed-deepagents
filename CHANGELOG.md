@@ -14,6 +14,28 @@ On each non-dev release, notes are generated from git commits since the previous
 
 ## Unreleased
 
+## 0.8.6 - 2026-10-06
+
+### Added
+
+- Pass --agent-environment flag to deploy and delete CLI (`CLI`) (#686)
+- Add deploy --yes to confirm first-deploy overwrites unattended (`mda`) (#688)
+
+### Changed
+
+- `mda chat` no longer needs a dev server to be running already. It reuses one
+  that is, and otherwise starts its own for the session, logging to
+  `.mda/dev-server.log`. Run `mda dev` yourself to keep its output in view —
+  chat attaches to it [MDAC-79] (`cli`)
+- Bump urllib3 from 2.7.0 to 2.8.0 in /packages/pypi (`deps`) (#685)
+- Bump the minor-and-patch group (`deps`) (#682)
+- Bump the major group with 2 updates (`deps`) (#680)
+- Start a dev server when mda chat finds none (#654)
+
+### Fixed
+
+- Warn when a watch rebuild needs a LangSmith key that is missing (`dev`) (#695)
+- Stop owned child processes on SIGTERM and SIGHUP (`mda`) (#689)
 ## 0.8.5 - 2026-10-01
 
 ### Changed
