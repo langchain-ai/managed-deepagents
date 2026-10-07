@@ -14,6 +14,54 @@ On each non-dev release, notes are generated from git commits since the previous
 
 ## Unreleased
 
+## 0.9.0 - 2026-10-07
+
+### Added
+
+- **Runtime schedules SDK** (`npm`, `pypi`). Use `schedules` from tools or
+  middleware to create, list, get, update, and delete user-owned or agent-owned
+  schedules. Use `cron` for recurring runs or `at` for a single run. Choose a new
+  or existing thread; schedules created from a channel send replies there and
+  survive redeploys. Scheduled runs cannot create more schedules.
+- **Per-run graph factory** (`npm`, `pypi`, `cli`). Export a sync or async
+  `agent(runtime)` factory that returns `defineDeepAgent(...)` /
+  `define_deep_agent(...)`. Select models, tools, middleware, instructions,
+  skills, MCP servers, sandbox, and memory for each run. The factory receives
+  `ManagedServerRuntime` and also supports graph inspection without an active
+  run. Static agent definitions remain supported.
+- **Slack batch file uploads** (`npm`, `pypi`). Send multiple workspace files
+  as one attachment batch with `upload_files(paths)`, in the supplied order.
+  This requires a managed sandbox.
+- React to the inbound Slack message with an emoji when a channel run picks it
+  up, so the sender knows it was seen before the agent has anything to say.
+  Defaults to a fixed `eyes`; pass `reactions: false` to turn it off, another
+  short name to use that emoji, or a function to choose one per message
+  (`npm`, `pypi`). Return `null` (TypeScript) or `None` (Python) from the
+  callback to skip a reaction for one message.
+- Mda 0.9 (`mda`) (#711)
+
+### Changed
+
+- **npm, pypi:** Memory `allow` callbacks are deprecated. Select memory in the
+  agent factory with `defineMemory(...)` / `define_memory(...)` instead.
+  Root memory declarations remain the fallback; factory-selected memory cannot
+  include `allow` callbacks.
+- **npm, pypi, breaking:** Channel tools, middleware, and factories read delivery
+  from `runtime.channel`. Replace `runtime.context.channel["event"]` with
+  `runtime.channel.event` in Python and `runtime.context.channel.event` with
+  `runtime.channel.event` in TypeScript. Read provider data from
+  `runtime.channel.raw_event` (Python) or `runtime.channel.rawEvent` (TypeScript).
+  Python channel context is `None`; TypeScript tool and factory context is
+  `undefined`, and native middleware context is empty. The reply target is
+  private; use `runtime.channel.post` to send a reply. Direct API context and
+  validation stay unchanged.
+  See the [Python](packages/pypi/README.md#run-context-and-channels) and
+  [TypeScript](packages/npm/README.md#run-context-and-channels) channel guides.
+- **npm, breaking:** TypeScript MCP connectors run on `@langchain/mcp-adapters`
+  2.x: `defineMcp` takes `servers` and `transport` (not `mcpServers` and `type`),
+  tool results use LangChain content blocks, and modern servers can pause a run to
+  ask the user for input. See the [migration notes](packages/npm/README.md#mcp-servers)
+  and the adapter's [2.0.0 changelog](https://github.com/langchain-ai/langchainjs/blob/main/libs/langchain-mcp-adapters/CHANGELOG.md#200) (#645).
 ## 0.8.6 - 2026-10-06
 
 ### Added
