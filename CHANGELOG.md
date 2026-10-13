@@ -14,6 +14,58 @@ On each non-dev release, notes are generated from git commits since the previous
 
 ## Unreleased
 
+## 0.9.1 - 2026-10-13
+
+### Added
+
+- Enrich CLI and runtime attribution metadata (`telemetry`) (#743)
+- Accept any JOSE asymmetric algorithm chosen by the JWKS key (`channels`) (#772)
+- Let local Studio answer a channel's interrupts (`tools`) (#770)
+- Local stack server provenance, ref fetching and doctor warnings (`tools`) (#760)
+- Add a local LangSmith stack for fast mda deploy loops (`tools`) (#742)
+- Expose schedules on the managed runtime (`schedules`) (#719)
+- Support a user context on crons (`schedules`) (#740)
+
+### Changed
+
+- Faster requirement emit — install once, keep across builds, local tsx (`deploy`) (#721)
+- Bump the minor-and-patch group with 3 updates (`deps`) (#763)
+- Bump uuid (`deps`) (#764)
+- Bump the major group with 2 updates (`deps`) (#765)
+- Use LangChain-ecosystem types instead of local copies (`runtime`) (#762)
+- Bump sharp (`deps`) (#758)
+- Bump rustls from 0.23.44 to 0.23.45 (`deps`) (#717)
+- Bump the npm_and_yarn group across 4 directories with 1 update (`deps`) (#716)
+- Reuse LangChain message content types (`channels`) (#734)
+
+### Fixed
+
+- **Dynamic sandbox identity** (`npm`, `pypi`). Dynamic sandbox selection now
+  derives sandbox identity from image and box-shape options only
+  (`snapshotId`, `snapshotName`, `dockerImage`, `registry.url`, `vCpus`,
+  `memBytes`, `fsCapacityBytes`, `mountConfig.mounts`). Rotating a proxy secret
+  or changing `defaultTimeout` / `idleTtlSeconds` reuses the thread's existing
+  sandbox; lifecycle options such as `idleTtlSeconds` and `defaultTimeout`
+  apply to new sandboxes only.
+- **0.9.0 sandbox adoption** (`npm`, `pypi`). Live sandboxes created by 0.9.0
+  under the previous identity formula are adopted on upgrade. Threads that
+  started on 0.9.0 keep the 0.9.0 identity. Changing any sandbox option for
+  such a thread, even after the upgrade, starts a new sandbox. Wait until those
+  sandboxes idle out before changing options. This compatibility lookup is
+  scheduled for removal in 0.10.
+- **Stale proxy rules** (`npm`, `pypi`). Each run sets its desired proxy
+  configuration before its first sandbox command, including empty rules when
+  `proxyConfig` is absent. A failed update blocks the command; later attempts
+  retry. This requires Host support for `PATCH /v2/sandboxes/boxes/{name}`,
+  including for sandboxes without proxy rules.
+- Boot docker-base bake builder by snapshot id only (`cli`) (#759)
+- Omit TypeScript emit node_modules from deploy archive (`cli`) (#768)
+- Reuse Agent Auth HTTP connections (`mda-py`) (#746)
+- Keep sandbox identity stable across secret and lifecycle changes (`sandbox`) (#741)
+- Use LangGraph API 0.16.0rc5 (`cli`) (#738)
+- Recover deleted sandboxes without replaying operations (`mda`) (#731)
+- Honor dynamic snapshot selections (`sandbox`) (#724)
+
 ## 0.9.0 - 2026-10-07
 
 ### Added
@@ -38,7 +90,6 @@ On each non-dev release, notes are generated from git commits since the previous
   short name to use that emoji, or a function to choose one per message
   (`npm`, `pypi`). Return `null` (TypeScript) or `None` (Python) from the
   callback to skip a reaction for one message.
-- Mda 0.9 (`mda`) (#711)
 
 ### Changed
 
@@ -57,11 +108,13 @@ On each non-dev release, notes are generated from git commits since the previous
   validation stay unchanged.
   See the [Python](packages/pypi/README.md#run-context-and-channels) and
   [TypeScript](packages/npm/README.md#run-context-and-channels) channel guides.
+
 - **npm, breaking:** TypeScript MCP connectors run on `@langchain/mcp-adapters`
   2.x: `defineMcp` takes `servers` and `transport` (not `mcpServers` and `type`),
   tool results use LangChain content blocks, and modern servers can pause a run to
   ask the user for input. See the [migration notes](packages/npm/README.md#mcp-servers)
   and the adapter's [2.0.0 changelog](https://github.com/langchain-ai/langchainjs/blob/main/libs/langchain-mcp-adapters/CHANGELOG.md#200) (#645).
+
 ## 0.8.6 - 2026-10-06
 
 ### Added
