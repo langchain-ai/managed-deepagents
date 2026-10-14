@@ -14,6 +14,52 @@ On each non-dev release, notes are generated from git commits since the previous
 
 ## Unreleased
 
+## 0.9.2 - 2026-10-14
+
+### Added
+
+- **`setup.sh` for dynamic agents** (`cli`, `npm`, `pypi`). A dynamic agent's
+  `sandbox/setup.sh` is now baked at deploy even without a sandbox declaration,
+  on the default image. A sandbox the factory selects clones that recipe when it
+  sets no base or the declared base. A run that selects a different base fails
+  with an error, since `setup.sh` was never baked on it.
+- Add support for Agent Auth user-scoped secrets (`connectors`)
+- Build and push images for self-hosted deploys (`mda`) (#790)
+- Support setup.sh for dynamic agent factories (`sandbox`) (#755)
+- Include local packages from outside the project (`mda`) (#802)
+- Surface local stack startup errors in deploy status (`tools`) (#821)
+- Interrupt for API-key credentials from LangSmith Managed Tools (`connectors`) (#779)
+
+### Changed
+
+- Report local stack preparation failures without waiting for builds (#822)
+- Resolve toolchain programs with one candidate helper (`mda`) (#812)
+- Reuse copy_dir_recursive for the vendored TS runtime (`mda`) (#813)
+- Drop unreachable schedule input branch and cover schedule validation (`mda`) (#815)
+- Share plugin-module discovery between connectors and channels (`mda`) (#808)
+- Use shared channel types in delivery and Slack transport (`pypi`) (#807)
+- Deserialize Python agent name kind into an enum (`mda`) (#811)
+- Reuse LangSmith client helpers (`mda`) (#814)
+- Use oxc helpers for import attribute and export names (`mda`) (#816)
+- Reuse json_expression for static array elements (`mda`) (#817)
+- Use vitest allTests and drop dead helpers (`integration-tests`) (#805)
+- Use mda_channel for ingress context (`mda`) (#754)
+
+### Fixed
+
+- Route mda's /api-host deployment calls to the mock host (`local-stack`) (#823)
+- Link Context Hub repos to their agents (`mda`) (#819)
+- Treat failed git status as dirty in eval provenance (`mda`) (#809)
+- Reject malformed schedule deliverTo destinations (`mda`) (#804)
+- Report timeouts in logged run() errors (`local-stack`) (#806)
+- Stop `mda logs -f` reprinting lines that share a timestamp (`mda`) (#810)
+- Report an invalid schedule timezone the same way as Python (`mda`) (#803)
+- Route self-hosted APIs independently (`mda`) (#781)
+- Install vendored Python runtime separately (`mda`) (#795)
+- Preserve self-hosted auth API prefix (`mda`) (#797)
+- Link self-hosted deployment dashboards (`mda`) (#793)
+- Honor N_JOBS_PER_WORKER locally (`dev`) (#796)
+
 ## 0.9.1 - 2026-10-13
 
 ### Added
