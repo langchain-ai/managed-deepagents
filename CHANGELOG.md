@@ -25,12 +25,12 @@ On each non-dev release, notes are generated from git commits since the previous
   channel `run.interrupted` events carry each interrupt's `response_schema`.
   `mda dev` requires `langgraph-api` 0.16 or later. (#710)
 - Provision `schedules/` on the local server in `mda dev`, with `--no-schedules` to opt out (`cli`, `npm`, `pypi`) (#825)
-- Read schedule limits from env vars (`schedules`) (#862)
-- Send the tracing project on runtime events (`channels`) (#748)
-- Cap runtime schedules per owner (`schedules`) (#840)
 
 ### Fixed
 
+- Read schedule limits from env vars (`schedules`) (#862)
+- Send the tracing project on runtime events (`channels`) (#748)
+- Cap runtime schedules per owner (`schedules`) (#840)
 - Show each schedule's cron expression in the `mda dev` banner instead of `(?)` (`cli`) (#825)
 - Connections in a deployed agent no longer fail with `LANGSMITH_WORKSPACE_ID is not set` when the deploy never named a workspace: the runtime falls back to the `LANGSMITH_TENANT_ID` LangSmith sets on every hosted revision. `LANGSMITH_WORKSPACE_ID` still wins when set (`npm`, `pypi`) (#905)
 - Handle self-hosted runtime mounts and credentials (`channels`) (#901)
