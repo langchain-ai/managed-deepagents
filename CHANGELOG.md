@@ -14,6 +14,47 @@ On each non-dev release, notes are generated from git commits since the previous
 
 ## Unreleased
 
+## 0.9.3 - 2026-10-17
+
+### Added
+
+- **cli, npm, pypi:** Per-call human-in-the-loop approvals
+  (`HumanInTheLoopMiddleware(interrupt_mode="per_call")`) work end to end.
+  `mda chat` reviews one tool call at a time, offering the decisions in its
+  `response_schema`, and can edit the arguments or answer for the tool. Trigger
+  channel `run.interrupted` events carry each interrupt's `response_schema`.
+  `mda dev` requires `langgraph-api` 0.16 or later. (#710)
+- Provision `schedules/` on the local server in `mda dev`, with `--no-schedules` to opt out (`cli`, `npm`, `pypi`) (#825)
+- Read schedule limits from env vars (`schedules`) (#862)
+- Send the tracing project on runtime events (`channels`) (#748)
+- Cap runtime schedules per owner (`schedules`) (#840)
+
+### Fixed
+
+- Show each schedule's cron expression in the `mda dev` banner instead of `(?)` (`cli`) (#825)
+- Connections in a deployed agent no longer fail with `LANGSMITH_WORKSPACE_ID is not set` when the deploy never named a workspace: the runtime falls back to the `LANGSMITH_TENANT_ID` LangSmith sets on every hosted revision. `LANGSMITH_WORKSPACE_ID` still wins when set (`npm`, `pypi`) (#905)
+- Handle self-hosted runtime mounts and credentials (`channels`) (#901)
+- Interrupt for credentials a partial tool kit lists in _meta (`connectors`) (#889)
+- Preserve self-hosted Trigger API base paths (`channels`) (#887)
+- Require langgraph-cli 0.4.36 (`mda`) (#882)
+- Run Python agents on the checkout's langgraph-api (`local-stack`) (#883)
+- Bump @langchain/openai to 1.6.2 (`examples`) (#872)
+- Bump langchainplus pin and regenerate patches (`local-stack`) (#871)
+- Give mda dev its own build directory (`mda`) (#850)
+- Bump langchain in TS fixtures so gpt-6 uses Responses (`test`) (#867)
+- Keep the Python emit site across dev rebuilds (`mda`) (#849)
+- Route self-hosted channel setup through API prefix (`mda`) (#845)
+- Cache, retry, and keep 503 for LangSmith key verification (`auth`) (#853)
+- Use the Responses API for deployed TypeScript fixtures (`test`) (#857)
+- Sweep leaked dockerbase/sourcebase bake snapshots (`mda`) (#829)
+- Show the Trigger Server's reason when channel setup fails (`mda`) (#841)
+- Route self-hosted Agent Auth through API prefix (`mda`) (#842)
+- Pass Slack message attachments and blocks to the agent (`channels`) (#836)
+- Route self-hosted sandbox runtime calls (`mda`) (#844)
+- Recognize LangSmith tool kit URLs (`mcp`) (#847)
+- Retry deployment status polling errors (`mda`) (#843)
+- Let the local stack deploy without --push-to (`mda`) (#838)
+
 ## 0.9.2 - 2026-10-14
 
 ### Added
@@ -59,6 +100,10 @@ On each non-dev release, notes are generated from git commits since the previous
 - Preserve self-hosted auth API prefix (`mda`) (#797)
 - Link self-hosted deployment dashboards (`mda`) (#793)
 - Honor N_JOBS_PER_WORKER locally (`dev`) (#796)
+
+### Fixed
+
+- Sweep leftover `--dockerbase-` / `--sourcebase-` bake snapshots on deploy, dev and delete (`cli`)
 
 ## 0.9.1 - 2026-10-13
 
