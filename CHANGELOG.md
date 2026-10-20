@@ -14,6 +14,32 @@ On each non-dev release, notes are generated from git commits since the previous
 
 ## Unreleased
 
+## 0.9.4 - 2026-10-20
+
+### Added
+
+- Report failed child stderr as the error stacktrace (`mda`) (#902)
+- Send CLI logs to Datadog over OTLP (`mda`) (#886)
+
+### Changed
+
+- Bump @modelcontextprotocol/client in /packages/npm (`deps`) (#954)
+- Bump the npm_and_yarn group across 4 directories with 1 update (`deps-dev`) (#953)
+- Bump the minor-and-patch group in /packages/pypi with 4 updates (`deps`) (#918)
+- Bump the minor-and-patch group (`deps`) (#917)
+- Bump actions/create-github-app-token (`deps`) (#916)
+- Bump the major group with 2 updates (`deps`) (#915)
+- Bump the minor-and-patch group with 4 updates (`deps`) (#914)
+- Bump the minor-and-patch group across 1 directory with 9 updates (`deps`) (#798)
+- Bump the minor-and-patch group across 1 directory with 11 updates (`deps`) (#799)
+
+### Fixed
+
+- Suppress MCP import beta warning (`python`) (#940)
+- Delete each integration job's own deployments on cancel (`ci`) (#866)
+- Drop other package managers' lockfiles from the build (`mda`) (#919)
+- Fail writes to unmounted memory layers instead of dropping them (`memory`) (#745)
+
 ## 0.9.3 - 2026-10-17
 
 ### Added
