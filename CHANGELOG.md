@@ -14,6 +14,38 @@ On each non-dev release, notes are generated from git commits since the previous
 
 ## Unreleased
 
+## 0.9.5 - 2026-10-24
+
+### Added
+
+- Trace `deploy` and `dev` commands by stage (`cli`) (#946)
+- Send runtime logs to Datadog over OTLP (`runtime`) (#907)
+- Set up self-hosted Slack channels with customer apps (`mda`) (#937)
+
+### Changed
+
+- Decouple explicit connection targets from local agent builds (#683)
+- Use Language::extension for managed entry file names (`cli`) (#970)
+- fix connections auth on BYOC deployments (#984)
+- Type held log context work as awaitable and drop a TypedDict cast (`telemetry`) (#976)
+- Drop redundant casts in channel delivery and run context (`runtime`) (#975)
+- Reuse existing helpers for run channel and string options (`runtime`) (#974)
+- Share one augmentRuntime between managed tools and middleware (`runtime`) (#973)
+- Reuse the deployment ID helper in schedules (`runtime`) (#972)
+- Share Language::manifest_name between init and compile (`cli`) (#971)
+- Bump the uv group across 2 directories with 1 update (`deps`) (#957)
+- Bump certifi from 2026.7.22 to 2026.10.19 in /packages/pypi (`deps`) (#956)
+
+### Fixed
+
+- Return tool errors for writes to read-only Context Hub mounts (`runtime`) (#876)
+- Treat the instructions.md mount as a file in agent file tools (`runtime`) (#875)
+- Use authoritative LangSmith dashboard URL (`cli`) (#993)
+- Honor fs_capacity_bytes when baking a docker_image sandbox (`cli`) (#979)
+- Guide first runs past a missing model key and a wrong directory (`cli`) (#982)
+- Hash long deployment names in bake builder sandbox names (`mda`) (#983)
+- Trace mda dev runs to the agent's local environment (`mda`) (#952)
+
 ## 0.9.4 - 2026-10-20
 
 ### Added
