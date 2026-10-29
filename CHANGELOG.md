@@ -14,30 +14,233 @@ On each non-dev release, notes are generated from git commits since the previous
 
 ## Unreleased
 
+## 0.10.0 - 2026-10-29
+
+### Added
+
+- **Async subagents** (`npm`, `pypi`, `cli`). A subagent marked
+  `async: true` runs in the background as its own graph on the same
+  deployment, in TypeScript and Python projects. It shares the lead agent's
+  sandbox and trace, loads the skills its `skills` names, and passes
+  `update_strategy`, `webhook`, `notify_parent` and `mode: "fork"` through to
+  deepagents. Every served agent also gets a background copy of the
+  general-purpose subagent. On a channel thread, a subagent's updates and
+  approvals post to the lead agent's thread, and an answer there resumes it.
+  (#860) (#728) (#921) (#888) (#894) (#945) (#977) (#951) (#980) (#1018)
+  (#1020) (#1022)
+- **Browser use** (`npm`, `pypi`, `cli`). A root `browser.ts` / `browser.py`
+  exporting `defineBrowser()` / `define_browser()` gives the agent a LangSmith
+  browser and Stagehand's `browser_run`, `browser_snapshot` and
+  `browser_screenshot` tools. A browser belongs to a thread, or with
+  `scope: "user"` to a signed-in person across their threads, logins included.
+  Factories can replace it or turn it off with `browser`. `browser_handoff`
+  hands the browser to the user and wakes the agent when they hand it back.
+  `browser_record` records the browser tab as an mp4 in the agent's sandbox,
+  for example to show a person a UI change. `mda` adds Stagehand only to
+  projects that declare a browser. See [Browser](README.md#browser). (#967)
+  (#1064) (#1010)
+- **npm, pypi:** `runtime.thread` (`id`, `origin`, `participants`). Managed
+  ingress keeps a thread record in thread metadata (`ls_mda_thread`,
+  `ls_mda_participants`) on every channel message: the channel the latest
+  message came from, who sent it, and the people on the thread (`owner` or
+  `member`). Every run on the thread reads it, and the run posts its own answer
+  and its approvals to that origin when it ends. So a LangSmith Studio resume, a
+  scheduled run and an async subagent's wake-up run all answer the channel
+  conversation. The record never holds message text or provider events. (#987)
+- **npm, pypi:** Runs can be stopped. Slack threads get a native Stop button
+  that cancels the thread's runs. Studio can cancel runs on Slack threads,
+  which used to answer `404 no matching runs to cancel`. Cancelled runs report
+  a `run.cancelled` lifecycle event instead of an empty `run.interrupted`.
+  (#870)
+- **npm, pypi:** Slack channels take a `triggerMode`: `"mention"` (the default
+  for new apps), `"thread"` to keep replying in a thread after one mention, or
+  `"all"`. When unset, a deployed agent keeps its current mode.
+  `triggerOnAllMessages` is deprecated in favor of `triggerMode: "all"`. (#744)
+- **cli:** `mda deploy` asks which Slack app a new Slack channel uses: one
+  LangSmith creates and manages (naming the workspace you authorized it in), a
+  new one you create from a manifest, or one you already have. Self-hosted
+  LangSmith offers your own app only. Your app's credentials come from prompts,
+  or from `MDA_SLACK_BOT_TOKEN` and `MDA_SLACK_SIGNING_SECRET` without a
+  terminal. LangSmith keeps them, so later deploys ask nothing. (#994) (#1053)
+- Use serverless and dedicated deployment types (`cli`) (#1099)
+- Expose the run's browser name (`browser`) (#1108)
+- Add --env-file to choose the env file per environment (`cli`) (#1075)
+- Log per-phase graph build timing (`runtime`) (#1054)
+
+### Changed
+
+- **npm, pypi:** `runtime.channel` is deprecated in favor of
+  `runtime.thread.origin.channel` and will be removed in 0.11. It now has the
+  thread's origin in every run on a channel thread, not only in the run a
+  message started. `event` and `raw_event` (`rawEvent`) are set only in the run
+  the message started, so they can be `None` / `null`.
+- **npm, pypi:** Trigger (Slack) channels post the reply from the run, not
+  from the ingress process. Same-thread runtime schedules report `channel` and
+  `target` as `None` / `null`, because the thread decides where they post.
+- **npm, pypi:** An HTTP channel message to a thread that waits on an
+  interrupt starts nothing. It used to start a new run.
+- **cli:** `mda deploy` sets up GitHub, Linear and Slack channels the same way.
+  Each channel's CLI-only env vars skip its questions with or without a
+  terminal, are checked before anything is uploaded, are never uploaded, and
+  can be removed once deploy says the channel is ready. A failed setup step
+  offers to try again or continue without the channel for Slack too, and one
+  channel's failure no longer skips the others. A brought GitHub App's webhook
+  secret now comes from `MDA_GITHUB_WEBHOOK_SECRET` (`GH_WEBHOOK_SECRET` stays
+  the deployment's own override), and `MDA_GITHUB_APP_ID`,
+  `MDA_GITHUB_APP_PRIVATE_KEY_FILE` and `MDA_GITHUB_APP_INSTALLATION_ID` bring
+  an existing App without a terminal. Without a terminal, a new Slack channel
+  stops before uploading unless LangSmith can create its app in a workspace you
+  already authorized. (#998)
+- **cli:** When Slack still needs you after `mda deploy` has the deployment
+  live (authorizing LangSmith, or installing or approving its new Slack app),
+  deploy prints the link and waits until Slack reports it done, instead of
+  failing without a terminal or asking you to press Enter in one. In a
+  terminal the link opens in your browser and Ctrl-C skips the channel;
+  without one, deploy waits up to an hour. (#999)
+- **npm, pypi:** deepagents `^1.16.0` (npm) and `>=0.7.30` (PyPI) are the
+  lowest supported versions.
+- **cli, breaking:** Shell env wins over project `.env`. `LANGSMITH_API_KEY`,
+  `LANGSMITH_ENDPOINT`, `LANGSMITH_WORKSPACE_ID`, `LANGSMITH_PROJECT` (in
+  `mda dev`) and `--secret-from-env` values now come from the shell first and
+  the project `.env` second, so `LANGSMITH_ENDPOINT=… mda deploy` and
+  CI-injected variables are no longer silently shadowed by the file. If you
+  export one of these globally (e.g. for tracing) and keep a different value in
+  a project `.env`, `mda` now uses the shell value: unset it in the shell or
+  align the two. When both set a key to different values, `mda` warns once and
+  names the key, never the value. Values deployed as secrets still come from
+  `.env` only, so shell variables never leak into a deployment. (#769)
+- **npm, pypi, breaking:** A factory that passes `sandbox` per run keeps the
+  thread's sandbox when the selection's options change. Snapshot, image and
+  sizing apply only when MDA creates the thread's sandbox, and MDA logs a
+  warning when a run asks for other options. Only different `mountConfig` /
+  `mount_config` mounts give a thread a separate sandbox. A thread with a live
+  sandbox from 0.9 reconnects to it.
+- **cli:** A self-hosted deployment's Slack app is set up the same way as any
+  other: `mda deploy` asks for it or reads `MDA_SLACK_BOT_TOKEN` and
+  `MDA_SLACK_SIGNING_SECRET`. 0.9.5 read `SLACK_BOT_TOKEN` and
+  `SLACK_SIGNING_SECRET` from `.env` for this; rename them.
+- Keep a thread's box when its selection options change (`sandbox`) (#1115)
+- Resolve LangSmith deployment env in one module (`runtime`) (#1060)
+- Load the Python package's exports on first use (`sdk`) (#1039)
+- Bump the major group with 2 updates (`deps`) (#1035)
+- Bump the minor-and-patch group (`deps`) (#1037)
+- Bump crc32fast (`deps`) (#1034)
+- Bump the minor-and-patch group across 1 directory with 3 updates (`deps`) (#1036)
+- Bump the npm_and_yarn group across 4 directories with 4 updates (`deps`) (#1031)
+- Bump fastmcp from 4.1.0 to 4.1.2 in /packages/pypi (`deps-dev`) (#1030)
+- Bump opentelemetry-api in /packages/pypi (`deps`) (#1029)
+- Resolve LangSmith clients through one LangSmithContext (`mda`) (#927)
+
+### Fixed
+
+- Verify the Trigger `identity_context` off the event loop (`pypi`) (#1004)
+  (#1042)
+- Clear a stale Stagehand claim by reloading the extension, not reinstalling it (#1085) (`browser`) (#1121)
+- Give mda dev boxes stable names (`sandbox`) (#1110)
+- Keep LangSmith agent address vars out of deployment secrets (`deploy`) (#1112)
+- Drop the runtime's uv source when bundling it (`cli`) (#1109)
+- Recognize managed-tools MCP URLs with query strings (#1092)
+- Leave reasoning blocks out of channel replies (`channels`) (#1094)
+- Report a rejected LangSmith API key as an authentication failure (`cli`) (#978)
+- Check and read a channel icon through one open file (`runtime`)
+- Verify the Slack actor against the signed principal (`channels`) (#1059)
+- Report scheduled run errors to the channel (`channels`) (#1089)
+- Log why a channel run input is refused (`channels`) (#1070)
+- Continue a scheduled run's thread from its new Slack thread (`mda`) (#1019)
+- Fall back to LANGCHAIN_API_KEY for the deployment key (`runtime`) (#1057)
+- Name local agent connection variables so shells keep them (`connections`) (#824)
+- Read sync subagent spreads in `subagents=[...]` (`mda`) (#941)
+
+### Removed
+
+- **Breaking (`cli`, `npm`, `pypi`):** `connectors.mcp(...)` and the
+  `connectors/` MCP file layout, deprecated since 0.7 and announced for removal
+  in 0.8.0. Declare MCP servers in `tools/mcp.ts` / `tools/mcp.py` with
+  `export const mcp = defineMcp(...)` / `mcp = define_mcp(...)`. The
+  `connectors` export is gone from both runtimes, and `mda` fails the build when
+  a module under `connectors/` still exports `connector` or has a default export.
+  (#924)
+- **Breaking (`cli`, `npm`, `pypi`):** the sandbox `scope` option, announced for
+  removal in 0.7.0. Sandbox reuse is always one box per thread. `mda` fails the
+  build when the sandbox declaration sets `scope`, and `defineSandbox` /
+  `define_sandbox` throw when it is passed at runtime. Remove it from the
+  sandbox declaration.
+- **`cli`:** the generated Python MCP connection emitter no longer reads the
+  legacy `mcp_servers` config key, which the runtime already rejects.
+- **Breaking (`cli`):** the ignored `mda evals init [TASK_NAME]` positional,
+  which is now rejected. `mda evals init` also fails on Harbor job configs
+  written by mda 0.4.0 to 0.5.3, and says how to regenerate them. (#926)
+
+### Experimental
+
+These APIs ship in 0.10 and may change in a minor release. Their docs in code
+say so, and `mda dev`, `mda deploy` and `mda build` show a warning when a
+project declares the GitHub or Linear channel.
+
+- **GitHub channel** (`npm`, `pypi`, `cli`). `channels.github()` starts runs
+  from GitHub App events, one thread per issue or pull request, as the
+  sender. Handlers get the conversation's thread and the handles an event
+  mentions, and `onReceived` hears each delivery first. `mda deploy` creates
+  the App or uses one you bring. (#839) (#861) (#892) (#895) (#931) (#934)
+  (#938)
+- **Linear channel** (`npm`, `pypi`, `cli`). `channels.linear()` answers
+  Linear agent sessions (mentions and delegated issues) with session
+  activities, cancels the run when someone presses Stop, points a run that
+  stops on interrupts to LangSmith Studio, and starts runs from `Issue` and
+  `Comment` webhooks. `mda deploy` sets up a new Linear app or uses one the
+  workspace has, and keeps it as an Agent Auth app the deployment owns. See
+  [`examples/linear`](examples/linear). (#828) (#830) (#831) (#832) (#834)
+  (#995) (#1023)
+- **npm, pypi:** Slack channel handlers. `onEvent` decides what each
+  `mention`, `directMessage`, `message` or button `interaction` starts, with
+  the verified sender as `event.actor`. `multitaskStrategy` sets what a
+  message does while its thread runs, `onFinish` hears once each message is
+  done, `status` sets what Slack shows while a run works, and `reply: "none"`
+  leaves replying to the agent. (#947) (#949) (#950) (#988) (#989) (#990)
+  (#997)
+- **npm, pypi:** HTTP channel hooks. `input` decides what a message starts,
+  `onReceived` and `onFinish` hear each delivery, `multitaskStrategy` and
+  `reply` work as for Slack, and `parse` may return `cancel` to stop a
+  thread's runs. A message may carry a `deliveryKey` and start in the
+  `background`. (#826) (#913)
+- **npm, pypi:** Handler run options and endpoints. A channel handler may
+  return run `metadata` and a completion `webhook` with its input, or be an
+  endpoint of your service (`EventEndpoint`) that answers what to start.
+  (#899) (#922) (#911) (#929) (#948)
+- **npm, pypi:** `runtime.channel.post(message, { newThread: true, run })`
+  posts at top level, which starts a new provider thread, and can start a run
+  in it. (#1024)
+- **npm, pypi:** `runtime.schedules.create(..., run_as=participant)`
+  (`runAs` in TypeScript) runs a schedule as another participant of the
+  thread.
+- **npm, pypi:** `resolveUser` / `resolve_user` maps a channel's verified
+  sender to one of your users, with a function or an endpoint MDA asks. Set it
+  on the identity declaration for every channel, or on one channel. Without a
+  mapping, a GitHub user runs as their Agent Auth principal for
+  `(github, github.com, <id>)` instead of `github:<id>`, and a Linear user as
+  theirs for `(linear, linear.app, <id>)` instead of the shared `mda:channel`,
+  as a Slack user already did. Bots and apps still run as the channel. User
+  memory a GitHub sender kept under `github:<id>` is not carried over.
+  Unmapped GitHub and Linear senders still get no user connections. (#1061)
+  (#1080) (#1081)
+
 ## 0.9.5 - 2026-10-24
 
 ### Added
 
-- Trace `deploy` and `dev` commands by stage (`cli`) (#946)
-- Send runtime logs to Datadog over OTLP (`runtime`) (#907)
 - Set up self-hosted Slack channels with customer apps (`mda`) (#937)
 
 ### Changed
 
-- Decouple explicit connection targets from local agent builds (#683)
-- Use Language::extension for managed entry file names (`cli`) (#970)
-- fix connections auth on BYOC deployments (#984)
-- Type held log context work as awaitable and drop a TypedDict cast (`telemetry`) (#976)
-- Drop redundant casts in channel delivery and run context (`runtime`) (#975)
-- Reuse existing helpers for run channel and string options (`runtime`) (#974)
-- Share one augmentRuntime between managed tools and middleware (`runtime`) (#973)
-- Reuse the deployment ID helper in schedules (`runtime`) (#972)
-- Share Language::manifest_name between init and compile (`cli`) (#971)
+- Decouple explicit connection targets from local agent builds (#683). Store API requests from ordinary users with an empty or wildcard namespace now return 403.
+- Send runtime logs to Datadog over OTLP (`runtime`) (#907)
+- Trace `deploy` and `dev` commands by stage (`cli`) (#946)
 - Bump the uv group across 2 directories with 1 update (`deps`) (#957)
 - Bump certifi from 2026.7.22 to 2026.10.19 in /packages/pypi (`deps`) (#956)
 
 ### Fixed
 
+- Fix connections auth on BYOC deployments (#984)
 - Return tool errors for writes to read-only Context Hub mounts (`runtime`) (#876)
 - Treat the instructions.md mount as a file in agent file tools (`runtime`) (#875)
 - Use authoritative LangSmith dashboard URL (`cli`) (#993)
