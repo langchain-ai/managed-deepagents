@@ -14,6 +14,56 @@ On each non-dev release, notes are generated from git commits since the previous
 
 ## Unreleased
 
+## 0.10.1 - 2026-11-02
+
+### Added
+
+- Handle GitHub merge queue events (`channels`) (#1133)
+- Keep a Linear agent session alive while its run works (`channels`) (#1135)
+
+### Changed
+
+- **cli:** `mda init --channel`, `mda channels init` and `mda channels setup`
+  warn when they add or set up an experimental GitHub or Linear channel, their
+  `--help` marks both experimental, and `mda channels setup --json` reports
+  `experimental` for each channel. (#1144)
+- Recover from transient Agent Auth credential lookup failures (#1170)
+- Copy new attachments concurrently (`slack`) (#1165)
+- Keep MCP tool listings for five minutes (`python`) (#1164)
+- Load credential-gate consumers concurrently (`python`) (#1163)
+- Bump rustls from 0.23.45 to 0.23.46 (`deps`) (#1130)
+- Bump the uv group across 2 directories with 1 update (`deps`) (#1128)
+- Bump undici (`deps`) (#1102)
+- Bump dnspython from 2.8.0 to 2.9.0 in /packages/pypi (`deps`) (#1100)
+- Bump authlib from 1.8.0 to 1.9.1 in /packages/pypi (`deps`) (#1101)
+
+### Fixed
+
+- Reuse credential tools within a verified run (`python`) (#1156)
+- Name the deployment and channel on run failures, and count closed streams as cancelled (`runtime`) (#1173)
+- Tell a Linear session at once when its run can't start (`channels`) (#1136)
+- Say which signed Linear delivery the replay window refuses (`channels`) (#1134)
+- Stop copying the bot's own uploads into the sandbox (`slack`) (#1158)
+- Upgrade vulnerable Zod and KaTeX dependencies (#1166)
+- Save TypeScript screenshots into thread state with deepagents 1.16.1 (`browser`) (#1138)
+- Connect afresh when Chrome restarted since the last call (`browser`) (#1107)
+- Tell the model when its browser was replaced or a recording lost (`browser`) (#1097)
+- Save screenshots without a sandbox (`browser`) (#1088)
+- Stop Slack channel deploys that use a service key, and say which key to use (`cli`) (#1140)
+- Let agents delete memory files (`mda`) (#1142)
+- Warn when deploy drops a reserved env var (`mda`) (#1141)
+- Say why a channel reply failed (`channels`) (#1131)
+
+### Experimental
+
+- **cli:** `mda channels setup [slack|github|linear]` runs the channel setup
+  that `mda deploy` runs, against the deployed agent, without deploying. In a
+  terminal it asks which channels to set up. Without a terminal, or with
+  `--json`, it only reports where each channel stands, and it exits non-zero
+  unless every channel is set up. `mda deploy` now sets up an existing
+  deployment's channels before it uploads the new revision, so a channel that
+  cannot be set up stops the deploy before the upload. (#1132)
+
 ## 0.10.0 - 2026-10-29
 
 ### Added
@@ -62,114 +112,11 @@ On each non-dev release, notes are generated from git commits since the previous
   LangSmith offers your own app only. Your app's credentials come from prompts,
   or from `MDA_SLACK_BOT_TOKEN` and `MDA_SLACK_SIGNING_SECRET` without a
   terminal. LangSmith keeps them, so later deploys ask nothing. (#994) (#1053)
-- Use serverless and dedicated deployment types (`cli`) (#1099)
-- Expose the run's browser name (`browser`) (#1108)
-- Add --env-file to choose the env file per environment (`cli`) (#1075)
-- Log per-phase graph build timing (`runtime`) (#1054)
-
-### Changed
-
-- **npm, pypi:** `runtime.channel` is deprecated in favor of
-  `runtime.thread.origin.channel` and will be removed in 0.11. It now has the
-  thread's origin in every run on a channel thread, not only in the run a
-  message started. `event` and `raw_event` (`rawEvent`) are set only in the run
-  the message started, so they can be `None` / `null`.
-- **npm, pypi:** Trigger (Slack) channels post the reply from the run, not
-  from the ingress process. Same-thread runtime schedules report `channel` and
-  `target` as `None` / `null`, because the thread decides where they post.
-- **npm, pypi:** An HTTP channel message to a thread that waits on an
-  interrupt starts nothing. It used to start a new run.
-- **cli:** `mda deploy` sets up GitHub, Linear and Slack channels the same way.
-  Each channel's CLI-only env vars skip its questions with or without a
-  terminal, are checked before anything is uploaded, are never uploaded, and
-  can be removed once deploy says the channel is ready. A failed setup step
-  offers to try again or continue without the channel for Slack too, and one
-  channel's failure no longer skips the others. A brought GitHub App's webhook
-  secret now comes from `MDA_GITHUB_WEBHOOK_SECRET` (`GH_WEBHOOK_SECRET` stays
-  the deployment's own override), and `MDA_GITHUB_APP_ID`,
-  `MDA_GITHUB_APP_PRIVATE_KEY_FILE` and `MDA_GITHUB_APP_INSTALLATION_ID` bring
-  an existing App without a terminal. Without a terminal, a new Slack channel
-  stops before uploading unless LangSmith can create its app in a workspace you
-  already authorized. (#998)
-- **cli:** When Slack still needs you after `mda deploy` has the deployment
-  live (authorizing LangSmith, or installing or approving its new Slack app),
-  deploy prints the link and waits until Slack reports it done, instead of
-  failing without a terminal or asking you to press Enter in one. In a
-  terminal the link opens in your browser and Ctrl-C skips the channel;
-  without one, deploy waits up to an hour. (#999)
-- **npm, pypi:** deepagents `^1.16.0` (npm) and `>=0.7.30` (PyPI) are the
-  lowest supported versions.
-- **cli, breaking:** Shell env wins over project `.env`. `LANGSMITH_API_KEY`,
-  `LANGSMITH_ENDPOINT`, `LANGSMITH_WORKSPACE_ID`, `LANGSMITH_PROJECT` (in
-  `mda dev`) and `--secret-from-env` values now come from the shell first and
-  the project `.env` second, so `LANGSMITH_ENDPOINT=… mda deploy` and
-  CI-injected variables are no longer silently shadowed by the file. If you
-  export one of these globally (e.g. for tracing) and keep a different value in
-  a project `.env`, `mda` now uses the shell value: unset it in the shell or
-  align the two. When both set a key to different values, `mda` warns once and
-  names the key, never the value. Values deployed as secrets still come from
-  `.env` only, so shell variables never leak into a deployment. (#769)
-- **npm, pypi, breaking:** A factory that passes `sandbox` per run keeps the
-  thread's sandbox when the selection's options change. Snapshot, image and
-  sizing apply only when MDA creates the thread's sandbox, and MDA logs a
-  warning when a run asks for other options. Only different `mountConfig` /
-  `mount_config` mounts give a thread a separate sandbox. A thread with a live
-  sandbox from 0.9 reconnects to it.
-- **cli:** A self-hosted deployment's Slack app is set up the same way as any
-  other: `mda deploy` asks for it or reads `MDA_SLACK_BOT_TOKEN` and
-  `MDA_SLACK_SIGNING_SECRET`. 0.9.5 read `SLACK_BOT_TOKEN` and
-  `SLACK_SIGNING_SECRET` from `.env` for this; rename them.
-- Keep a thread's box when its selection options change (`sandbox`) (#1115)
-- Resolve LangSmith deployment env in one module (`runtime`) (#1060)
-- Load the Python package's exports on first use (`sdk`) (#1039)
-- Bump the major group with 2 updates (`deps`) (#1035)
-- Bump the minor-and-patch group (`deps`) (#1037)
-- Bump crc32fast (`deps`) (#1034)
-- Bump the minor-and-patch group across 1 directory with 3 updates (`deps`) (#1036)
-- Bump the npm_and_yarn group across 4 directories with 4 updates (`deps`) (#1031)
-- Bump fastmcp from 4.1.0 to 4.1.2 in /packages/pypi (`deps-dev`) (#1030)
-- Bump opentelemetry-api in /packages/pypi (`deps`) (#1029)
-- Resolve LangSmith clients through one LangSmithContext (`mda`) (#927)
-
-### Fixed
-
-- Verify the Trigger `identity_context` off the event loop (`pypi`) (#1004)
-  (#1042)
-- Clear a stale Stagehand claim by reloading the extension, not reinstalling it (#1085) (`browser`) (#1121)
-- Give mda dev boxes stable names (`sandbox`) (#1110)
-- Keep LangSmith agent address vars out of deployment secrets (`deploy`) (#1112)
-- Drop the runtime's uv source when bundling it (`cli`) (#1109)
-- Recognize managed-tools MCP URLs with query strings (#1092)
-- Leave reasoning blocks out of channel replies (`channels`) (#1094)
-- Report a rejected LangSmith API key as an authentication failure (`cli`) (#978)
-- Check and read a channel icon through one open file (`runtime`)
-- Verify the Slack actor against the signed principal (`channels`) (#1059)
-- Report scheduled run errors to the channel (`channels`) (#1089)
-- Log why a channel run input is refused (`channels`) (#1070)
-- Continue a scheduled run's thread from its new Slack thread (`mda`) (#1019)
-- Fall back to LANGCHAIN_API_KEY for the deployment key (`runtime`) (#1057)
-- Name local agent connection variables so shells keep them (`connections`) (#824)
-- Read sync subagent spreads in `subagents=[...]` (`mda`) (#941)
-
-### Removed
-
-- **Breaking (`cli`, `npm`, `pypi`):** `connectors.mcp(...)` and the
-  `connectors/` MCP file layout, deprecated since 0.7 and announced for removal
-  in 0.8.0. Declare MCP servers in `tools/mcp.ts` / `tools/mcp.py` with
-  `export const mcp = defineMcp(...)` / `mcp = define_mcp(...)`. The
-  `connectors` export is gone from both runtimes, and `mda` fails the build when
-  a module under `connectors/` still exports `connector` or has a default export.
-  (#924)
-- **Breaking (`cli`, `npm`, `pypi`):** the sandbox `scope` option, announced for
-  removal in 0.7.0. Sandbox reuse is always one box per thread. `mda` fails the
-  build when the sandbox declaration sets `scope`, and `defineSandbox` /
-  `define_sandbox` throw when it is passed at runtime. Remove it from the
-  sandbox declaration.
-- **`cli`:** the generated Python MCP connection emitter no longer reads the
-  legacy `mcp_servers` config key, which the runtime already rejects.
-- **Breaking (`cli`):** the ignored `mda evals init [TASK_NAME]` positional,
-  which is now rejected. `mda evals init` also fails on Harbor job configs
-  written by mda 0.4.0 to 0.5.3, and says how to regenerate them. (#926)
+- **npm, pypi:** `BrowserMiddleware.browser_name(runtime)` /
+  `browserName(runtime)` gives the name of the run's LangSmith browser, so an
+  app can open the same browser before the agent has browsed. (#1108)
+- **cli:** `--env-file` chooses the env file per environment. (#1075)
+- **runtime:** Logs how long each phase of the graph build takes. (#1054)
 
 ### Experimental
 
@@ -223,6 +170,113 @@ project declares the GitHub or Linear channel.
   memory a GitHub sender kept under `github:<id>` is not carried over.
   Unmapped GitHub and Linear senders still get no user connections. (#1061)
   (#1080) (#1081)
+
+### Changed
+
+- **npm, pypi:** `runtime.channel` is deprecated in favor of
+  `runtime.thread.origin.channel` and will be removed in 0.11. It now has the
+  thread's origin in every run on a channel thread, not only in the run a
+  message started. `event` and `raw_event` (`rawEvent`) are set only in the run
+  the message started, so they can be `None` / `null`.
+- **npm, pypi:** Trigger (Slack) channels post the reply from the run, not
+  from the ingress process. Same-thread runtime schedules report `channel` and
+  `target` as `None` / `null`, because the thread decides where they post.
+- **npm, pypi:** An HTTP channel message to a thread that waits on an
+  interrupt starts nothing. It used to start a new run.
+- **cli:** `mda deploy` sets up GitHub, Linear and Slack channels the same way.
+  Each channel's CLI-only env vars skip its questions with or without a
+  terminal, are checked before anything is uploaded, are never uploaded, and
+  can be removed once deploy says the channel is ready. A failed setup step
+  offers to try again or continue without the channel for Slack too, and one
+  channel's failure no longer skips the others. A brought GitHub App's webhook
+  secret now comes from `MDA_GITHUB_WEBHOOK_SECRET` (`GH_WEBHOOK_SECRET` stays
+  the deployment's own override), and `MDA_GITHUB_APP_ID`,
+  `MDA_GITHUB_APP_PRIVATE_KEY_FILE` and `MDA_GITHUB_APP_INSTALLATION_ID` bring
+  an existing App without a terminal. Without a terminal, a new Slack channel
+  stops before uploading unless LangSmith can create its app in a workspace you
+  already authorized. (#998)
+- **cli:** When Slack still needs you after `mda deploy` has the deployment
+  live (authorizing LangSmith, or installing or approving its new Slack app),
+  deploy prints the link and waits until Slack reports it done, instead of
+  failing without a terminal or asking you to press Enter in one. In a
+  terminal the link opens in your browser and Ctrl-C skips the channel;
+  without one, deploy waits up to an hour. (#999)
+- **npm, pypi:** deepagents `^1.16.0` (npm) and `>=0.7.30` (PyPI) are the
+  lowest supported versions.
+- **cli, breaking:** Shell env wins over project `.env`. `LANGSMITH_API_KEY`,
+  `LANGSMITH_ENDPOINT`, `LANGSMITH_WORKSPACE_ID`, `LANGSMITH_PROJECT` (in
+  `mda dev`) and `--secret-from-env` values now come from the shell first and
+  the project `.env` second, so `LANGSMITH_ENDPOINT=… mda deploy` and
+  CI-injected variables are no longer silently shadowed by the file. If you
+  export one of these globally (e.g. for tracing) and keep a different value in
+  a project `.env`, `mda` now uses the shell value: unset it in the shell or
+  align the two. When both set a key to different values, `mda` warns once and
+  names the key, never the value. Values deployed as secrets still come from
+  `.env` only, so shell variables never leak into a deployment. (#769)
+- **npm, pypi, breaking:** A factory that passes `sandbox` per run keeps the
+  thread's sandbox when the selection's options change. Snapshot, image and
+  sizing apply only when MDA creates the thread's sandbox, and MDA logs a
+  warning when a run asks for other options. Only different `mountConfig` /
+  `mount_config` mounts give a thread a separate sandbox. A thread with a live
+  sandbox from 0.9 reconnects to it. (#1115)
+- **cli:** A self-hosted deployment's Slack app is set up the same way as any
+  other: `mda deploy` asks for it or reads `MDA_SLACK_BOT_TOKEN` and
+  `MDA_SLACK_SIGNING_SECRET`. 0.9.5 read `SLACK_BOT_TOKEN` and
+  `SLACK_SIGNING_SECRET` from `.env` for this; rename them.
+- **cli:** `mda deploy` creates a `serverless` deployment by default, which can
+  scale to zero. Pass `--deployment-type dedicated` for the old behavior.
+  `dev` and `prod` still work. Serverless needs a supported GCP SaaS
+  environment, and other environments reject it instead of falling back to
+  dedicated. Existing deployments do not change. (#1099)
+- **pypi:** The Python package loads its exports on first use, so importing it
+  is faster. (#1039)
+- Bump the major group with 2 updates (`deps`) (#1035)
+- Bump the minor-and-patch group (`deps`) (#1037)
+- Bump crc32fast (`deps`) (#1034)
+- Bump the minor-and-patch group across 1 directory with 3 updates (`deps`) (#1036)
+- Bump the npm_and_yarn group across 4 directories with 4 updates (`deps`) (#1031)
+- Bump fastmcp from 4.1.0 to 4.1.2 in /packages/pypi (`deps-dev`) (#1030)
+- Bump opentelemetry-api in /packages/pypi (`deps`) (#1029)
+
+### Removed
+
+- **Breaking (`cli`, `npm`, `pypi`):** `connectors.mcp(...)` and the
+  `connectors/` MCP file layout, deprecated since 0.7 and announced for removal
+  in 0.8.0. Declare MCP servers in `tools/mcp.ts` / `tools/mcp.py` with
+  `export const mcp = defineMcp(...)` / `mcp = define_mcp(...)`. The
+  `connectors` export is gone from both runtimes, and `mda` fails the build when
+  a module under `connectors/` still exports `connector` or has a default export.
+  (#924)
+- **Breaking (`cli`, `npm`, `pypi`):** the sandbox `scope` option, announced for
+  removal in 0.7.0. Sandbox reuse is always one box per thread. `mda` fails the
+  build when the sandbox declaration sets `scope`, and `defineSandbox` /
+  `define_sandbox` throw when it is passed at runtime. Remove it from the
+  sandbox declaration.
+- **`cli`:** the generated Python MCP connection emitter no longer reads the
+  legacy `mcp_servers` config key, which the runtime already rejects.
+- **Breaking (`cli`):** the ignored `mda evals init [TASK_NAME]` positional,
+  which is now rejected. `mda evals init` also fails on Harbor job configs
+  written by mda 0.4.0 to 0.5.3, and says how to regenerate them. (#926)
+
+### Fixed
+
+- Verify the Trigger `identity_context` off the event loop (`pypi`) (#1004)
+  (#1042)
+- Clear a stale Stagehand claim by reloading the extension, not reinstalling it (`browser`) (#1085) (#1121)
+- Give mda dev boxes stable names (`sandbox`) (#1110)
+- Keep LangSmith agent address vars out of deployment secrets (`deploy`) (#1112)
+- Drop the runtime's uv source when bundling it (`cli`) (#1109)
+- Recognize managed-tools MCP URLs with query strings (#1092)
+- Leave reasoning blocks out of channel replies (`channels`) (#1094)
+- Report a rejected LangSmith API key as an authentication failure (`cli`) (#978)
+- Check and read a channel icon through one open file (`runtime`)
+- Verify the Slack actor against the signed principal (`channels`) (#1059)
+- Report scheduled run errors to the channel (`channels`) (#1089)
+- Log why a channel run input is refused (`channels`) (#1070)
+- Continue a scheduled run's thread from its new Slack thread (`mda`) (#1019)
+- Fall back to LANGCHAIN_API_KEY for the deployment key (`runtime`) (#1057)
+- Name local agent connection variables so shells keep them (`connections`) (#824)
+- Read sync subagent spreads in `subagents=[...]` (`mda`) (#941)
 
 ## 0.9.5 - 2026-10-24
 
