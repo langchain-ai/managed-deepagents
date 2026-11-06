@@ -14,6 +14,60 @@ On each non-dev release, notes are generated from git commits since the previous
 
 ## Unreleased
 
+## 0.10.2 - 2026-11-06
+
+### Added
+
+- **cli, npm, pypi:** A persistent schedule no longer needs a thread `id`.
+  Declare `thread: { mode: "persistent" }` / `thread={"mode": "persistent"}`
+  and MDA derives a stable thread ID from the agent and schedule name, then
+  creates that thread on deploy, so every run shares one history without a
+  Studio step or a second deploy. Deploy also creates a missing thread for an
+  explicit `id`; a thread that another caller owns is still refused. An
+  explicit `id` must now be a UUID, which `mda deploy` checks at compile time.
+  (#1238)
+- **npm, pypi:** Declarative async subagents accept an optional `mcp` selection that
+  narrows their MCP tools. Omit it to inherit the agent's MCP servers, list
+  `defineMcp` / `define_mcp` definitions to keep only those, or pass `[]` or
+  `null` / `None` for none. An async subagent loads only the servers it selects
+  and requests only their credentials. Other connectors and authored tools
+  are unaffected. (#1200)
+- **npm, pypi:** Sync declarative subagents also accept `mcp` to select tools
+  from servers the agent loads. Omission keeps normal tool inheritance;
+  `[]` or `null` / `None` removes MCP tools. Authored and non-MCP connector
+  tools are preserved. Sync `mode: "fork"` subagents cannot set `mcp`.
+  (#1201)
+- Steering / deliver channel messages to a running agent at its next model call (`mda`) (#1206)
+- Cache compiled graphs across runs with `cached_agent` (`runtime`) (#1248)
+- Ask for LangSmith tool kit connections on first use (`mcp`) (#1118)
+- Open a thread's managed sandbox (`sandbox`) (#1148)
+- Pull remote instructions and skills into local projects (`cli`) (#1203)
+- Add notification metadata to handoff notifications (`browser`) (#1091)
+- Add self-hosted langsmith development mode to mda-local (`mda-local`) (#1072)
+
+### Changed
+
+- Bump the minor-and-patch group across 1 directory with 12 updates (`deps`) (#1221)
+- Bump the minor-and-patch group across 1 directory with 10 updates (`deps`) (#1220)
+- Bump pyasn1 from 0.6.4 to 0.6.5 in /packages/pypi (`deps`) (#1209)
+- Bump joserfc from 1.7.5 to 1.7.6 in /packages/pypi (`deps`) (#1207)
+- Bump the minor-and-patch group across 1 directory with 3 updates (`deps`) (#1210)
+- Bump the uv group across 2 directories with 1 update (`deps`) (#1208)
+- Bump the major group with 2 updates (`deps`) (#1187)
+- Bump docker/login-action (`deps`) (#1188)
+
+### Fixed
+
+- **npm, pypi:** `auth.langsmithApiKey()` / `auth.langsmith_api_key()` treats a
+  personal access token as a person instead of a service principal. Its caller
+  can use user-owned connections, is eligible for user memory, and resolves to
+  the same Agent Auth principal as that user in deployed Studio. Service keys stay
+  workspace service principals, and thread ownership keys are unchanged.
+  (#1240)
+- Run async subagents in mda eval (`eval`) (#1172)
+- Read the mda dev project directory once, off the run's event loop (`sandbox`) (#1242)
+- Never give a thread a second sandbox on first open (`sandbox`) (#1214)
+
 ## 0.10.1 - 2026-11-02
 
 ### Added
