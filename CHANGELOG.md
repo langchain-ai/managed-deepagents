@@ -14,6 +14,27 @@ On each non-dev release, notes are generated from git commits since the previous
 
 ## Unreleased
 
+## 0.10.3 - 2026-11-09
+
+### Added
+
+- Let authenticated users create crons that run as themselves (`runtime`) (#1290)
+- Let local mda dev callers manage api crons (`runtime`) (#1288)
+- Let api key callers create and update untagged crons (`runtime`) (#1282)
+- Mount authored backends with define_deep_agent(routes=...) (`runtime`) (#1272)
+- Slack status false hides the status and stop button (`channels`) (#1271)
+
+### Changed
+
+- Bump the major group with 2 updates (`deps`) (#1293)
+- Bump the minor-and-patch group with 3 updates (`deps`) (#1292)
+
+### Fixed
+
+- Retry transient channel reply delivery failures (`mda`) (#1299)
+- Keep credential-bearing redirects within their origin (`cli`) (#1300)
+- Avoid project conflicts with agent tracing (`dev`) (#1285)
+
 ## 0.10.2 - 2026-11-06
 
 ### Added
