@@ -14,6 +14,31 @@ On each non-dev release, notes are generated from git commits since the previous
 
 ## Unreleased
 
+## 0.10.4 - 2026-11-14
+
+### Added
+
+- Limit the managed browser to an allow list of hosts (`browser`) (#1250)
+- Let a GitHub channel handle its own App's events (`channels`) (#1143)
+- Add runtime-resolved assistant memory scope (`memory`) (#1297)
+- Scaffold AGENTS.md in mda init (`cli`) (#1270)
+
+### Changed
+
+- Bump hono from 4.13.14 to 4.13.16 in /packages/npm (`deps`) (#1344)
+- Use Agent Server naming and flags with hidden deployment aliases (#1323)
+
+### Fixed
+
+- Pin langgraph-api 0.19.0rc1 instead of 0.19.0.dev8 (`cli`) (#1347)
+- Fit the memory cache breakpoint to the request's budget (`memory`) (#1341)
+- Summarize a public App's installations in the channel setup output (`github`) (#1151)
+- Keep a finished run's result when its status read gets no answer (`channels`) (#1326)
+- Read pasted Slack message links from the preview Slack adds (`channels`) (#1315)
+- Call Tool Gateway as the agent in agent-owned schedules (`runtime`) (#1317)
+- Use Stagehand 4.4's watchdog and disconnect() instead of 4.3.0 workarounds (`browser`) (#1213)
+- Recover from credential outages during tool execution (`mda`) (#1298)
+
 ## 0.10.3 - 2026-11-09
 
 ### Added
@@ -39,6 +64,11 @@ On each non-dev release, notes are generated from git commits since the previous
 
 ### Added
 
+- **cli:** `mda init` scaffolds an `AGENTS.md` for coding agents working in the
+  project. It lists the project's commands and asks the agent to end each
+  session by asking whether to keep the agent on `mda dev` or deploy it. It
+  tells the agent not to run `mda deploy` unless the user asks. Build and
+  deploy leave the root `AGENTS.md` out.
 - **cli, npm, pypi:** A persistent schedule no longer needs a thread `id`.
   Declare `thread: { mode: "persistent" }` / `thread={"mode": "persistent"}`
   and MDA derives a stable thread ID from the agent and schedule name, then
