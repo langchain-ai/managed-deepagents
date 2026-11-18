@@ -1,18 +1,61 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+## [0.10.5](https://github.com/langchain-ai/managed-deepagents-sdk/compare/v0.10.4...v0.10.5) (2026-11-18)
 
-This project follows semantic versioning while it is in early development.
 
-Both `managed-deepagents` runtime packages (npm and PyPI) publish together at the
-same version. Changelog entries still call out which surface a change landed in
-(`npm`, `pypi`, and/or `cli`) when that distinction is useful.
+### Features
 
-On each non-dev release, notes are generated from git commits since the previous
-`vX.Y.Z` tag (conventional `feat` / `fix` / …). Optional curated bullets under
-`## Unreleased` are merged in first.
+* **mda:** export a Fleet agent's MCP tools, connections and approval rules ([345f030](https://github.com/langchain-ai/managed-deepagents-sdk/commit/345f030869a646f9f7d9bc65eabe9f86e1f304a5))
+* **mda:** export a Fleet agent's sandbox and access profiles ([3c19b2f](https://github.com/langchain-ai/managed-deepagents-sdk/commit/3c19b2f37d5ec3cc8684226aa6aae90b7de08562))
+* **mda:** export a Fleet agent's Slack channel ([370a8b6](https://github.com/langchain-ai/managed-deepagents-sdk/commit/370a8b633afe9f7538c3bfc7cad6b2aea4870483))
+* **mda:** export a Fleet agent's subagents ([5af9b34](https://github.com/langchain-ai/managed-deepagents-sdk/commit/5af9b34f63a36bb286ae6fbf72c985f0607aa3ae))
+* **mda:** export Fleet skills and memory ([a83d050](https://github.com/langchain-ai/managed-deepagents-sdk/commit/a83d050a6dabec054b7bccd1091b57e92ed17c23))
+* **mda:** mda init --from exports a Fleet agent ([fd9181a](https://github.com/langchain-ai/managed-deepagents-sdk/commit/fd9181adce116660f2176498dd8c6e884133cc98))
+* **mda:** mint agent access tokens from the pod token in TypeScript ([a1b436e](https://github.com/langchain-ai/managed-deepagents-sdk/commit/a1b436e1899987eabd2b4119c2e1d0b75508a929))
+* **mda:** print the agent identity at the end of mda deploy ([d6b0b81](https://github.com/langchain-ai/managed-deepagents-sdk/commit/d6b0b8185d9e603190f3648daac37eb90da92c51))
+* **mda:** Tool Gateway servers declare auth "langsmith" ([#1353](https://github.com/langchain-ai/managed-deepagents-sdk/issues/1353)) ([33a1251](https://github.com/langchain-ai/managed-deepagents-sdk/commit/33a12516fcd468f8402bfdf6d86e41c44c53e66c))
+* **runtime:** add agent access tokens to Gateway and Managed Tools calls ([#1365](https://github.com/langchain-ai/managed-deepagents-sdk/issues/1365)) ([8287ba4](https://github.com/langchain-ai/managed-deepagents-sdk/commit/8287ba41439796fae958d33037477c61f4c14dff))
 
-## Unreleased
+
+### Bug Fixes
+
+* **cli:** let build runners compile without credentials in `mda prepare` ([#1313](https://github.com/langchain-ai/managed-deepagents-sdk/issues/1313)) ([b67d8a7](https://github.com/langchain-ai/managed-deepagents-sdk/commit/b67d8a729a16cec5d3246542337ad0a0ed2bfda4))
+* **mda:** address review findings across the Fleet export stack ([28a0e69](https://github.com/langchain-ai/managed-deepagents-sdk/commit/28a0e696c5d4a3367f60656b97f2fe2821c6dc29))
+* **mda:** delete integration test agents in CI cleanup ([9b35f1b](https://github.com/langchain-ai/managed-deepagents-sdk/commit/9b35f1b390ffb7dae3ac8921bb8be2f7b901ba7b))
+* **mda:** keep MCP tool calls on the cached catalog with FastMCP 4.2 ([bf3862d](https://github.com/langchain-ai/managed-deepagents-sdk/commit/bf3862dbd1c1960782ef2a11976b676e6c690da5))
+* **mda:** return tool errors to the model instead of ending the run ([649c2db](https://github.com/langchain-ai/managed-deepagents-sdk/commit/649c2db4e4403076af328548547aae5cf3519eca))
+* **mda:** stop integration test leaks in MDA CI ([8cbff69](https://github.com/langchain-ai/managed-deepagents-sdk/commit/8cbff693fe75f81e63812f14af96da3e509d123b))
+* **mda:** stop mda dev restarting the server on every save when LangSmith settings are exported ([c6d01ca](https://github.com/langchain-ai/managed-deepagents-sdk/commit/c6d01caec2b0b6fe08015e57b2177b4ec54d1fc1))
+* **mda:** tag launched async workers as subagents in traces ([4110827](https://github.com/langchain-ai/managed-deepagents-sdk/commit/4110827cddfc1dde35b4bdfbe7ebf5e03f65af61))
+* **runtime:** give sync subagents their own credential gate ([f815ec2](https://github.com/langchain-ai/managed-deepagents-sdk/commit/f815ec2583a572a73c6a29c031e7b0bd3d46522a))
+
+
+### Chores
+
+* **cli:** default scaffolded agents to openai:gpt-6-luna ([#1364](https://github.com/langchain-ai/managed-deepagents-sdk/issues/1364)) ([5952530](https://github.com/langchain-ai/managed-deepagents-sdk/commit/59525309f10ea8b3d2d169ca0c9af05f1fa0269d))
+* **deps:** bump @hono/node-server ([#1339](https://github.com/langchain-ai/managed-deepagents-sdk/issues/1339)) ([36a5ce7](https://github.com/langchain-ai/managed-deepagents-sdk/commit/36a5ce7a3f4f65ecc2d598012a72e0ac6d5c43b4))
+* **deps:** bump dnspython from 2.9.0 to 2.9.2 in /packages/pypi ([#1351](https://github.com/langchain-ai/managed-deepagents-sdk/issues/1351)) ([0972c37](https://github.com/langchain-ai/managed-deepagents-sdk/commit/0972c37a9d779517fc478bce0763bd9ab217880c))
+* **deps:** bump opentelemetry-api ([#1350](https://github.com/langchain-ai/managed-deepagents-sdk/issues/1350)) ([a0598c3](https://github.com/langchain-ai/managed-deepagents-sdk/commit/a0598c3cd7e01532023fe94bc6860dcd092cda67))
+* **deps:** bump opentelemetry-api in /packages/pypi ([#1352](https://github.com/langchain-ai/managed-deepagents-sdk/issues/1352)) ([a31eb87](https://github.com/langchain-ai/managed-deepagents-sdk/commit/a31eb878eef86bd6bb72fd2aa860e6d11c8a816d))
+* **deps:** bump oxc from 0.157.0 to 0.158.0 in /sdks/managed-deepagents ([4897f27](https://github.com/langchain-ai/managed-deepagents-sdk/commit/4897f27e73a2abc5506f24970edbfec8bab871e4))
+* **deps:** bump the minor-and-patch group in /sdks/managed-deepagents with 5 updates ([9f0d635](https://github.com/langchain-ai/managed-deepagents-sdk/commit/9f0d63524d0627492c774481c1febbf4ed876966))
+* **deps:** bump the minor-and-patch group in /sdks/managed-deepagents/packages/npm with 11 updates ([32f2be4](https://github.com/langchain-ai/managed-deepagents-sdk/commit/32f2be4826790196b747362bf0011f2e75bc846f))
+* **deps:** bump the minor-and-patch group in /sdks/managed-deepagents/packages/pypi with 10 updates ([b1c48a1](https://github.com/langchain-ai/managed-deepagents-sdk/commit/b1c48a1c6966d63d4212a6375f5caf518bf68314))
+* **deps:** bump the npm_and_yarn group across 3 directories with 4 updates ([66abee8](https://github.com/langchain-ai/managed-deepagents-sdk/commit/66abee8bea68c693b5632eec7d392c8615c78412))
+* **deps:** bump uv-pep440 from 0.0.99 to 0.0.100 in /sdks/managed-deepagents ([0dad531](https://github.com/langchain-ai/managed-deepagents-sdk/commit/0dad53121ab9277cae60f0fe5f3f471694919310))
+* hand the changelog to release-please ([#1367](https://github.com/langchain-ai/managed-deepagents-sdk/issues/1367)) ([e60c3ce](https://github.com/langchain-ai/managed-deepagents-sdk/commit/e60c3ceb524c222e76d159ba04c87093a3edcb7e))
+* **mda:** move managed-deepagents-sdk into sdks/managed-deepagents ([3b82a54](https://github.com/langchain-ai/managed-deepagents-sdk/commit/3b82a543bb110e8f340521c4501a64bd37948f1c))
+* **release:** 0.10.4 ([#1354](https://github.com/langchain-ai/managed-deepagents-sdk/issues/1354)) ([232ebb9](https://github.com/langchain-ai/managed-deepagents-sdk/commit/232ebb9348b99b535e61bcc3740a01ab770da109))
+
+
+### Documentation
+
+* **mda:** drop the PyPI hosts note for browser recording ([8660dfe](https://github.com/langchain-ai/managed-deepagents-sdk/commit/8660dfef136e1c6c98e0288c359bf464fdad5a0c))
+
+
+### Refactors
+
+* **mda:** delete dead runtime code in npm and pypi ([e3e26ae](https://github.com/langchain-ai/managed-deepagents-sdk/commit/e3e26ae27cdf1e11d250ca73827f6d81eafafc5e))
 
 ## 0.10.4 - 2026-11-14
 
